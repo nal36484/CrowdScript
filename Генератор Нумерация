@@ -1,0 +1,87 @@
+struct Puzzle {
+    descr: string,
+    input: string,
+    output: string,
+    wrong_output: string,
+}
+
+function gen_puzzle(level: int) -> Puzzle {
+    let complexity = level + 7;
+    if (complexity > 20) {
+        complexity = 20;
+    }
+    let position = rand_int(complexity);
+    let positions = ["первое","второе","третье","четвёртое","пятое","шестое","седьмое","восьмое","девятое","десятое",
+                     "одиннадцатое","двенадцатое","тринадцатое","четырнадцатое","пятнадцатое","шестнадцатое","семнадцатое"
+                     ,"восемнадцатое","девятнадцатое","двадцатое"
+    ];
+    let header = gen_header();
+    let directions: string[][] = [["слева ","направо"],["справа ","налево"]];
+    let left_or_right = rand_int(2); 
+    let direction = directions[left_or_right];
+    let descr = header + direction[0] + direction[1] + ", выведите в ответ " + positions[position] + " слово.";
+    let input = gen_input(complexity);
+    let output = get_output(input, position, left_or_right);
+    let wrong_output = output;
+    if (position == 0) {
+        wrong_output = get_output(input, position + 1, left_or_right);
+    }
+    else if (position == 19) {
+        wrong_output = get_output(input, position - 1, left_or_right);
+    } else {
+        wrong_output = [get_output(input, position + 1, left_or_right),get_output(input, position - 1, left_or_right)][rand_int(2)];
+    }
+    return new Puzzle {
+        descr: descr,
+        input: input,
+        output: output,
+        wrong_output: wrong_output
+    };
+}
+
+function gen_input(complexity: int) -> string {
+    let words = [
+        "адрес ","агония ","гениальный ","галстук ","ель ","день ","набор ","девчата ","кабала ","озон ","бабушка ","лось ","жгут ","завод ","вальс ","изгой ",
+        "радар ","бал ","кекс ","единомыслие ","издатель ","задеть ","наговориться ","веселиться ","холоп ","замазка ","цифра ","обещание ","самбо ","паниковать ","ябеда ","галантный ",
+        "безразличный ","даль ","гад ","демагог ","льстить ","делегировать ","нагрев ","калитка ","радеть ","белка ","кастет ","парик ","едкий ","завтра ","маразм ","май ",
+        "жижа ","свояк ","вдвое ","жаль ","радиоэлектронный ","авто ","идиома ","легионер ","гель ","уговор ","закопаться ","фасон ","вершина ","обзор ","пар ","девятеро ",
+        "юла ","разжечь ","багет ","декан ","киллер ","засыпать ","торг ","верный ","обидеть ","хаос ","авария ","жатва ","палица ","жмурки ","ферзь ","бей ",
+        "если ","жюри ","заваруха ","мать ","академия ","калечить ","обозримый ","перепуг ","еда ","итальянский ","наклонение ","дебет ","интеллект ","галерея ","ливень ","мания ",
+        "ус ","безымянный ","увлечение ","маньяк ","фабрика ","ведьма ","ехидный ","измена ","найти ","перерыв ","деревня ","тёмный ","акр ","сидеть ","европейцы ","линза ",
+        "гамбит ","икона ","йогурт ","бандит ","лей ","дебют ","заглавие ","писк ","агрессия ","темнеть ","бейсбол ","изменить ","самец ","живот ","кираса ","капать "
+    ];
+    let str = "";
+    let length = 0;
+    let is_full : bool = false;
+    let map : {int : string} = {};
+    for (let i = 0; i < complexity * 2 || is_full ; i += 1) { 
+        let pos = rand_int(words.length());
+        while(map.contains(pos)) {
+            pos = rand_int(words.length());
+        }
+        str += words[pos];
+    }
+    return str;
+}
+
+function get_output(input: string, pos: int, direction: int) -> string {
+    let output = "";
+    let split = input.split(" ");
+    if (direction == 0) {
+        output += split[pos]
+    } else {
+        output += split[split.length() - pos - 2];
+    }
+    return output;
+}
+
+function gen_header() -> string {
+    let headers = ["В данном задании нумерация слов ",
+                   "Вообразите, что каждое слово пронумеровано ",
+                   "Каждое слово имеет порядковый номер ",
+                   "Все слова пронумерованы ",
+                   "Слова расположены по порядку ",
+                   "Каждому слову соответствует порядковый номер "
+                  ];
+    return headers[rand_int(headers.length())];
+}
