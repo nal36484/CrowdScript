@@ -1,0 +1,168 @@
+struct Puzzle {
+    descr: string,
+    input: string,
+    output: string,
+    wrong_output: string,
+    explanation: string
+}
+
+function gen_puzzle(level: int) -> Puzzle {
+    let complexity = level * 5 + 1;
+    let header = gen_header();
+    let expression_arr = gen_expression_arr(level, complexity);
+    let input_arr = gen_input_arr(expression_arr);
+    let input = gen_string(input_arr);
+    let task = gen_task();
+    let output_arr = gen_output_arr(expression_arr);
+    let output = gen_string(output_arr);
+    let wrong_output_arr = gen_wrong_output_arr(expression_arr);
+    let wrong_output = gen_string(wrong_output_arr);
+    let total = expression_arr[0][0];
+    let sign = expression_arr[0][1];
+    if (sign == " - ") {
+        sign = " -";
+    } else {
+        sign = " +";
+    }
+    let left = expression_arr[0][2];
+    let right = expression_arr[0][3];
+    let left_expression = gen_left_expression(left, total);
+    let right_expression = gen_right_expression(right, total);
+    let test_left1 = string(rand_int(complexity));
+    let test_right1 = string(rand_int(complexity));
+    let test_total1 = string(rand_int(complexity));
+    let test_left2 = string(rand_int(complexity));
+    let test_right2 = string(rand_int(complexity));
+    let test_total2 = string(rand_int(complexity));
+    let test_sign1 = " + ";
+    if (rand_bool()) {
+        test_sign1 = " - ";
+    }
+    let test_sign2 = " + ";
+    if (rand_bool()) {
+        test_sign2 = " - ";
+    }
+    let descr = header + "выражение, " + task + "без применения распределительного свойства. Если примеров несколько запишите ответ в квадратных скобках через запятую, например [(" + test_left1 +
+        test_sign1 + test_right1 + ") x " + test_total1 + ", (" + test_left2 + test_sign2 + test_right2 + ") x " + test_total2 + "].";
+    let explanation = "Распределительное свойство можно применить так. Сначала разобьём нашё выражение на левое (до знака " + sign +  ") и правое (после знака). " +
+        "В данном случае это " + left_expression + " и " + right_expression + " соответственно. Найдём у них общий общий множитель - это " + total +
+        ". И вынесем его за скобки. Получится (" + left + sign + " " + right + ") x " + total;
+    
+    return new Puzzle {
+        descr: descr,
+        input: input,
+        output: output,
+        wrong_output: wrong_output,
+        explanation: explanation
+    };
+}
+
+
+function gen_wrong_output_arr(arr: string[][]) -> string[] {
+    let wrong: string[] = [];
+    for (let i = 0; i < arr.length(); i += 1) {
+        let wrong_ans = int(arr[i][0]) + 1;
+        wrong_ans += rand_int(5);
+        let cur = "(" + arr[i][2] + arr[i][1] + arr[i][3] + ") x " + string(wrong_ans);
+        wrong.push(cur);
+    }
+    return wrong;
+}
+
+
+function gen_output_arr(arr: string[][]) -> string[] {
+    let output: string[] = [];
+    for (let i = 0; i < arr.length(); i += 1) {
+        let cur = "(" + arr[i][2] + arr[i][1] + arr[i][3] + ") x " + arr[i][0];
+        output.push(cur);
+    }
+    return output;
+}
+
+function gen_expression_arr(level: int, complexity: int) -> string[][] {
+    let arr: string[][] = [];
+    for (let i = 0; i < level; i += 1) {
+        let cur: string[] = [];
+        let total = string(rand_int(complexity*2));
+        cur.push(total);
+        let sign = " + ";
+        if (rand_bool()) {
+            sign = " - ";
+        }
+        cur.push(sign);
+        let left = string(rand_int(complexity));
+        cur.push(left);
+        let right = string(rand_int(complexity));
+        while (left == right) {
+            right = string(rand_int(complexity));
+        }
+        cur.push(right);
+        arr.push(cur);
+    }
+    return arr;
+}
+
+function gen_string(arr: string[]) -> string {
+    let str = "[";
+    for (let i = 0; i < arr.length(); i += 1) {
+        if (i == arr.length() - 1) {
+            str += arr[i] + "]";
+            break;
+        }
+        str += arr[i] + ", ";
+    }
+    return str;
+}
+
+function gen_input_arr(arr: string[][]) -> string[] {
+    let input: string[] = [];
+    for (let i = 0; i < arr.length(); i += 1) {
+        let left_expression = gen_left_expression(arr[i][2], arr[i][0]);
+        let right_expression = gen_right_expression(arr[i][3], arr[i][0]);
+        let expression = left_expression + arr[i][1] + right_expression;
+        input.push(expression);
+    }
+    return input;
+}
+
+function gen_task() -> string {
+    let tasks = ["перепешите его форму ",
+                 "измените его форму ",
+                 "переписать его ",
+                 "перепишите его ",
+                 "измените его ",
+                 "переписать его форму "
+    ];
+    return tasks[rand_int(tasks.length())];
+}
+
+function gen_left_expression(left: string, total: string) -> string {
+    let expression = "";
+    if (rand_bool()) {
+        expression += left + " x " + total;
+    } else {
+        expression += total + " x " + left;
+    }
+    return expression;
+}
+
+function gen_right_expression(right: string, total: string) -> string {
+    let expression = "";
+    if (rand_bool()) {
+        expression += right + " x " + total;
+    } else {
+        expression += total + " x " + right;
+    }
+    return expression;
+}
+
+function gen_header() -> string {
+    let headers = ["Дано ",
+                   "Представлено ",
+                   "Вы видите ",
+                   "Перед вами ",
+                   "Записано ",  
+                   "Дано следующее "
+    ];
+    return headers[rand_int(headers.length())];
+}
