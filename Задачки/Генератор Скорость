@@ -1,0 +1,208 @@
+struct Puzzle {
+    descr: string,
+    input: string,
+    output: string,
+    wrong_output: string,
+    explanation: string
+}
+
+function gen_puzzle(level: int) -> Puzzle {
+    let count = level + 1;
+    if (level > 99) {
+        count = 99;
+    }
+    let what = [["велосипедов","автобусов","автомобилей","мотоциклов","самолётов"],["велосипеда","автобуса","автомобиля","мотоцикла","самолёта"],["велосипед","автобус","автомобиль","мотоцикл","самолёт"]];
+    let ending = get_ending(count);
+    let number = rand_int(what[0].length());
+    let header = gen_header();
+    let serial_number = rand_int(count) + 1; // порядковый номер элемента 1,2,3,4 и т.д.
+    let v = 15 * (number + 1) + rand_int((number + 1) * 5);
+    let directions: string[][] = [["слева ","направо"],["справа ","налево"]];
+    let left_or_right = rand_int(2); 
+    let direction = directions[left_or_right];
+    let descr = header + string(count) + " " + what[ending][number] + ", каждый " + what[2][number] + " прошёл расстояние - S(км), за одинаковое время. Определите скорости всех " + 
+        what[0][number] + ", если " + what[2][number] + " под номером " + string(serial_number) + " имеет скорость - V = " + string(v) + "(км/час). На сколько скорость самого быстрого " +
+        what[1][number] + " выше скорости самого медленного? Нумерация " + what[0][number] + 
+        " " + direction[0] + direction[1] + ". Значение скоростей округлите до целых чисел. Формат вывода: В квадратных скобках, через запятую, перечислите значения всех скоростей." +
+        " В других квадратных скобках Укажите как вы получили разницу скоростей. Например [V = 31, V = 41, V = 87],[87 - 31 = 55].";
+    let dist_array = gen_dist_array(count, number + 1);
+    let time = calculate_time(v, dist_array[serial_number - 1]);
+    if (left_or_right == 1) {
+        time = calculate_time(v, dist_array[dist_array.length() - serial_number]);
+    }
+    let input = gen_input(dist_array);
+    let speeds_array = calculate_speeds_array(dist_array, time, v, serial_number - 1, left_or_right);
+    let min = get_min(speeds_array);
+    let max = get_max(speeds_array);
+    let diff = max - min;
+    let output = gen_output(speeds_array) + ",[" + string(max) + " - " + string(min) + " = " + string(diff) + "]";
+    let wrong_speeds = gen_wrong_speeds(dist_array, time, v, serial_number - 1, left_or_right);
+    let wrong_min = get_min(wrong_speeds);
+    let wrong_max = get_max(wrong_speeds);
+    let wrong_diff = wrong_max - wrong_min;
+    let wrong_output = gen_wrong_output(wrong_speeds, wrong_max, wrong_min, wrong_diff);
+    let explanation = "Для того, чтобы посчитать скорость неизвестного нам " + what[1][number] + ", необходимо сначала узнать время, за которое " + what[2][number] + " преодолел своё расстояние(S). " +
+        "Нам известно что время у всех " + what[0][number] + " одинаковое. Воспользуемся формулой T = S / V, где T = время пути, S - расстояние, которое прошёл " + what[2][number] + 
+        " и V = Скорость, с которой он двигался. Далее для того чтобы определить скорость остальных " + what[0][number] + ", воспользуемся формулой V = S / T, которая следует из предыдущей." + 
+        "Для того чтобы определить на сколько скорость самого быстрого " + what[1][number] + " выше скорости самого медленного. Необходимо сначала найти " +
+         what[2][number] + " с самым большим значением скорости и самым маленьким. Разница между самым большим значением и самым маленьким и будет являться ответом.";
+
+    return new Puzzle {
+        descr: descr,
+        input: input,
+        output: output,
+        wrong_output: wrong_output,
+        explanation: explanation
+    };   
+}
+
+function gen_wrong_speeds(dist: int[], time: float, speed: int, number: int, direction: int ) -> int[] {
+    let array: int[] = [];
+    if (direction == 1) {
+        number = dist.length() - 1 - number;
+    }
+    for (let i = 0; i < dist.length(); i += 1) {
+        if (i == number) {
+            array.push(speed);
+            continue;
+        }
+        let cur = float(dist[i]) / time;
+        let val = int(cur);
+        array.push(val); 
+    }
+    return array;
+}
+
+function gen_wrong_output(speeds: int[], max: int, min: int, diff: int) -> string {
+    let str = "[";
+    for (let i = 0; i < speeds.length(); i += 1) {
+        if (i == speeds.length() - 1) {
+            str += "V = " + string(speeds[i]) + "]";
+            break;
+        }
+        str += "V = " + string(speeds[i]) + ",";
+    }
+    diff += 1;
+    if (rand_bool()) {
+        diff -= 2;
+    }
+    str += ",[" + string(max) + " - " + string(min) + " = " + string(diff) + "]";
+    return str;
+}
+
+function get_max(array: int[]) -> int {
+    let max = array[0];
+    for (let i = 0; i < array.length(); i += 1) {
+        if (array[i] > max) {
+            max = array[i];
+        }
+    }
+    return max;
+}
+
+function get_min(array: int[]) -> int {
+    let min = array[0];
+    for (let i = 0; i < array.length(); i += 1) {
+        if (array[i] < min) {
+            min = array[i];
+        }
+    }
+    return min;
+}
+
+function gen_output(speeds: int[]) -> string {
+    let str = "[";
+    for (let i = 0; i < speeds.length(); i += 1) {
+        if (i == speeds.length() - 1) {
+            str += "V = " + string(speeds[i]) + "]";
+            break;
+        }
+        str += "V = " + string(speeds[i]) + ",";
+    }
+    return str;
+}
+
+function calculate_speeds_array(dist: int[], time: float, speed: int, number: int, direction: int ) -> int[] {
+    let array: int[] = [];
+    if (direction == 1) {
+        number = dist.length() - 1 - number;
+    }
+    for (let i = 0; i < dist.length(); i += 1) {
+        if (i == number) {
+            array.push(speed);
+            continue;
+        }
+        let cur = float(dist[i]) / time;
+        let val = int(cur);
+        if (is_bigger(cur)) {
+            val += 1;
+        }
+        array.push(val); 
+    }
+    return array;
+}
+
+function is_bigger(value: float) -> bool{
+    let is_big = false;
+    let str = string(value);
+    let number = "";
+    for (let i = 0; i < str.length(); i += 1) {
+        let ch = str[i];
+        if (ch == ".") {
+            if (i + 1 < str.length()) {
+                number = str[i + 1];
+                if (int(number) >= 5) {
+                    is_big = true;
+                }
+            }
+            break;
+        }
+    }
+    return is_big;
+}
+
+function calculate_time(speed: int, distance: int) -> float {
+    let time = float(speed) / float(distance);
+    return time;
+}
+
+function gen_dist_array(count: int, type: int) -> int[] {
+    let array: int[] = [];
+    while(count > 0) {
+        array.push(10 * (type) + rand_int((type + 1) * 5));
+        count -= 1;
+    }
+    return array;
+}
+
+function gen_input(array: int[]) -> string {
+    let str = "[";
+    for (let i = 0; i < array.length(); i += 1) {
+        if (i == array.length() - 1) {
+            str += "S = " + string(array[i]) + "]";
+            break;
+        }
+        str += "S = " + string(array[i]) + ",";
+    }
+    return str;
+}
+
+function get_ending(count: int) -> int {
+    if (5 <= count && count <= 20 || count % 10 >= 5 && count % 10 <= 9 || count % 10 == 0) {
+        return 0;
+    } else if (count % 10 == 1) {
+        return 2;
+    }
+    return 1;
+}
+
+function gen_header() -> string {
+    let headers = ["Представьте, что перед вами ",
+                   "Перед вами ",
+                   "В наличии ",
+                   "Имеется ",
+                   "Мы видим ",  
+                   "У нас есть "
+    ];
+    return headers[rand_int(headers.length())];
+}
