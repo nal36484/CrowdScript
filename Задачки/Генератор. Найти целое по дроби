@@ -1,0 +1,80 @@
+struct Puzzle {
+    descr: string,
+    input: string,
+    output: string,
+    wrong_output: string,
+    explanation: string
+}
+
+function gen_puzzle(level: int) -> Puzzle {
+    let header1 = gen_header1();
+    let header2 = gen_header2();
+    let objects = ["джинсов","свитера","джемпера","куртки","туфель","скатерти","фотоаппарата","модема","чайника","тостера"];
+    let object = objects[rand_int(objects.length())];
+    let delimiter = rand_int(level) + 2;
+    let numerator = rand_int(delimiter - 1) + 1;
+    let descr = header1 + "масса, " + header2 + " " + string(numerator) + "/" + string(delimiter) + " части " + object + ", найти общую массу " + object + ". Ответ округлите до целого числа.";
+    let weight = rand_int(level + 5) + 50;
+    let mass = get_mass(float(weight), float(numerator), float(delimiter));
+    let input = string(weight);
+    let output = string(mass);
+    let m = float(weight) * float(delimiter) / float(numerator);
+    let explanation = "Для того, чтобы посчитать массу " + object + ", необходимо массу части " + object + " равную " + input + " умножить на знаменатель = " + string(delimiter) + 
+        " и полученное число поделить на числитель = " + string(numerator) + ".  " + input + " * " + string(delimiter) + " / " + string(numerator) + " = " + string(m) +
+        ". Округляем до целого числа и получаем " + output + ".";
+    
+    return new Puzzle {
+        descr: descr,
+        input: input,
+        output: output,
+        wrong_output: string([mass + 1, mass - 1][rand_int(2)]),
+        explanation: explanation
+    };
+}
+
+function is_bigger(value: float) -> bool{
+    let is_big = false;
+    let str = string(value);
+    let number = "";
+    for (let i = 0; i < str.length(); i += 1) {
+        let ch = str[i];
+        if (ch == ".") {
+            if (i + 1 < str.length()) {
+                number = str[i + 1];
+                if (int(number) >= 5) {
+                    is_big = true;
+                }
+            }
+            break;
+        }
+    }
+    return is_big;
+}
+
+function get_mass(weight: float, numerator: float, delimiter: float) -> int {
+    let mass = weight * delimiter / numerator;
+    let val = int(mass);
+    if (is_bigger(mass)) {
+            val += 1;
+    }
+    return val;
+}
+
+function gen_header2() -> string {
+    let headers = ["эквивалентная ",
+                   "равная ",
+                   "подобная ",
+                   "являющаяся ",
+                   "равнозначащая ",  
+                   "аналогичная "
+    ];
+    return headers[rand_int(headers.length())];
+}
+
+function gen_header1() -> string {
+    let headers = ["Дана ",
+                   "Перед вами ",
+                   "Имеется "
+    ];
+    return headers[rand_int(headers.length())];
+}
