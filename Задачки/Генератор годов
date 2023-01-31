@@ -1,0 +1,150 @@
+struct Puzzle {
+    descr: string,
+    input: string,
+    output: string,
+    wrong_output: string,
+    explanation: string
+}
+function gen_puzzle(level: int) -> Puzzle {
+    let header = gen_header();
+    let task = gen_task();
+    let input_arr = gen_input_arr(level);
+    let input = gen_input(input_arr);
+    let ages = ["первый ","второй ","третий ","четвёртый ","пятый ","шестой ","седьмой ","восьмой ","девятый ","десятый ","одиннадцатый ","двенадцатый ","тринадцатый ",
+               "четырнадцатый ","пятнадцатый ","шестнадцатый ","семнадцатый ","восемнадцатый ","девятнадцатый ","двадцатый ","двадцать первый ","двадцать второй ","двадцать третий ",
+               "двадцать четвёртый ","двадцать пятый ","двадцать шестой ","двадцать седьмой ","двадцать восьмой ","двадцать девятый ","тридцатый ","тридцать первый ",
+               "тридцать второй ","тридцать третий ","тридцать четвёртый ","тридцать пятый ","тридцать шестой ","тридцать седьмой ","тридцать восьмой ","тридцать девятый ",
+               "сороковой ","сорок первый ","сорок второй ","сорок третий ","сорок четвёртый ","сорок пятый ","сорок шестой ","сорок седьмой ","сорок восьмой ","сорок девятый ",
+               "пятидесятый ","пятьдесят первый ","пятьдесят второй ","пятьдесят третий ","пятьдесят четвёртый ","пятьдесят пятый ","пятьдесят шестой ","пятьдесят седьмой ","пятьдесят восьмой ",
+               "пятьдесят девятый ","шестидесятый ","шестьдесят первый ","шестьдесят второй ","шестьдесят третий ","шестьдесят четвёртый ","шестьдесят пятый ","шестьдесят шестой ","шестьдесят седьмой ",
+               "шестьдесят восьмой ","шестьдесят девятый ","семидесятый ","семьдесят первый ","семьдесят второй ","семьдесят третий ","семьдесят четвёртый ","семьдесят пятый ","семьдесят шестой ",
+               "семьдесят седьмой ","семьдесят восьмой ","семьдесят девятый ","восьмидесятый ","восемьдесят первый ","восемьдесят второй ","восемьдесят третий ","восемьдесят четвёртый ",
+               "восемьдесят пятый ","восемьдесят шестой ","восемьдесят седьмой ","восемьдесят восьмой ","восемьдесят девятый ","девяностый ","девяносто первый ","девяносто второй ","девяносто третий ",
+               "девяносто четвёртый ","девяносто пятый ","девяносто шестой ","девяносто седьмой ","девяносто восьмой ","девяносто девятый ","сотый "];
+    let example = gen_example(ages);
+    let descr = header + task + "какой это век и столетие. Если годов несколько ответ запишите через запятую, например - " + example;
+    let output_arr = gen_output_arr(input_arr);
+    let output = gen_output(output_arr, ages);
+    let wrong_output = gen_wrong_output(output_arr,ages);
+    let test = rand_int(9999);
+    if (test % 100 == 0) {
+        test = test + 1;
+    }
+    let explanation = "Для того того чтобы определить какой век и столетие, необходимо число, которое является номером года разделить на 100. И к полученному результату прибавить единицу. " + 
+        "Это и будет номер века.Например: Дано число " + string(test) + " делим его на 100 получается " + string(test / 100) + " прибавляем единицу и получаем в ответ - " + ages[test/100]  + " век." +
+        " Исключение составляет случай когда остаток от деления числа на 100 равен нулю. В этом случае, нам не нужно прибавлять единицу к полученному после деления числу.";
+    
+    return new Puzzle {
+        descr: descr,
+        input: input,
+        output: output,
+        wrong_output: wrong_output,
+        explanation: explanation
+    }; 
+}
+
+function one_wrong(wrong: int, ages: string[], is_last: bool) -> string {
+    let str = "";
+    if (wrong == 0) {
+        str += ages[wrong + 1] + " век";
+    } else if (wrong == ages.length() - 1) {
+        str += ages[wrong - 1] + " век";
+    } else {
+        str += ages[wrong + 1] + " век";
+            if (rand_bool()) {
+            str = ages[wrong - 1] + " век";
+        }
+    }
+    if (!is_last) {
+        str += ",";
+    }
+    return str;
+}
+
+function gen_wrong_output(arr: int[], ages: string[]) -> string {
+    let str = "";
+    let is_last = false;
+    let wrong = rand_int(arr.length());
+    for (let i = 0; i < arr.length(); i += 1) {
+        if (i == wrong) {
+            if (i == arr.length() - 1) {
+                is_last = true;
+            }
+            str += one_wrong(arr[i], ages, is_last);
+                 continue;
+        }
+        if (i == arr.length() - 1) {
+            str += ages[arr[i]] + " век";
+            break;
+        }
+        str += ages[arr[i]] + " век,";
+    }
+    return str;
+}
+
+function gen_example(ages: string[]) -> string {
+    let first = rand_int(9999) / 100;
+    let second = rand_int(9999) / 100;
+    let str = ages[first] + " век," + ages[second] + "век";
+    return str;    
+}
+
+function gen_output(arr: int[], ages: string[]) -> string {
+    let str = "";
+    for (let i = 0; i < arr.length(); i += 1) {
+        if (i == arr.length() - 1) {
+            str += ages[arr[i]] + " век";
+            break;
+        }
+        str += ages[arr[i]] + " век,"
+    }
+    return str;
+}
+
+function gen_output_arr(arr: string[]) -> int[] {
+    let ans: int[] = [];
+    for (let i = 0; i < arr.length(); i += 1) {
+        let age = int(arr[i]);
+        if (age % 100 == 0) {
+            age = (age / 100) - 1;
+        } else {
+            age = age / 100;
+        }
+        ans.push(age);
+    }
+    return ans;
+}
+
+function gen_input(arr: string[]) -> string {
+    let str = "[";
+    for(let i = 0; i < arr.length(); i += 1) {
+        if (i == arr.length() - 1) {
+            str += arr[i] + "]";
+            break;
+        }
+        str += arr[i] + ",";
+    }
+    return str;
+}
+
+function gen_task() -> string {
+    let tasks = ["определите ","запишите ","укажите ","выпишите ","установите ","обозначьте ","выясните ","изложите "];
+    return tasks[rand_int(tasks.length())];
+}
+
+function gen_input_arr(level: int) -> string[] {
+    let str : string[] = [];
+    for (let i = 0; i < level; i += 1) {
+        str.push(string(rand_int(9999) + 1));
+    }
+    return str;
+}
+
+function gen_header() -> string {
+    let headers = ["Дано некоторое количество годов, ",
+                   "Перед вами некоторое количество годов, ",
+                   "Вы видите некоторое количество годов, ",
+                   "Задано некоторое количество годов, "
+    ];
+    return headers[rand_int(headers.length())];
+}
