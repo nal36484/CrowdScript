@@ -1,0 +1,126 @@
+struct Puzzle {
+    descr: string,
+    input: string,
+    output: string,
+    wrong_output: string,
+}
+
+function gen_puzzle(level: int) -> Puzzle {
+    let multipliers = gen_multipliers(level + 1);
+    let header = gen_header();
+    let task = gen_task();
+    let descr =  header + "некоторое количество примеров на умножение, " + task + "Ответ запишите в квадратных скобках, через запятую.";
+    let input_arr = gen_input(multipliers);
+    let input = gen_string(input_arr);
+    let output_arr = gen_output_arr(level + 1);
+    let output = gen_string(output_arr);
+    let wrong_arr = gen_wrong_arr(multipliers);
+    let wrong_output = gen_string(wrong_arr);
+    
+    return new Puzzle {
+        descr: descr,
+        input: input,
+        output: output,
+        wrong_output: wrong_output
+    };
+}
+
+function gen_non_zero(index: int, arr: int[][]) -> string {
+    let multy = 1;
+    for (let i = 0; i < arr[index].length(); i += 1) {
+        if (arr[index][i] == 0) {
+            continue;
+        }
+        multy *= arr[index][i];
+    }
+    return string(multy);
+}
+
+function gen_wrong_arr(arr: int[][]) -> string[] {
+    let ans: string[] = [];
+    let non_zero = rand_int(arr.length());
+    for (let i = 0; i < arr.length(); i += 1) {
+        if (i == non_zero) {
+            let wrong = gen_non_zero(i, arr);
+            ans.push(wrong);
+            continue;
+        }
+        ans.push("0");
+    }
+    return ans;
+}
+
+function gen_output_arr(level: int) -> string[] {
+    let arr: string[] = [];
+    for (let i = 0; i < level; i += 1) {
+        arr.push("0");
+    }
+    return arr;
+}
+
+function gen_string(arr: string[]) -> string {
+    let str = "[";
+    for (let i = 0; i < arr.length(); i += 1) {
+        if (i == arr.length() - 1) {
+            str += arr[i] + "]";
+            break;
+        }
+        str += arr[i] + ",";
+    }
+    return str;
+}
+
+function gen_input(arr: int[][]) -> string[] {
+    let ans: string[] = [];
+    for (let i = 0; i < arr.length(); i += 1) {
+        let str = "";
+        for(let j = 0; j < arr[i].length(); j += 1) {
+            if (j == arr[i].length() - 1) {
+                str += string(arr[i][j]);
+                break;
+            }
+            str += string(arr[i][j]) + " * ";
+        }
+        ans.push(str);
+    }
+    return ans;
+}
+
+function gen_task() -> string {
+    let tasks = ["вычислить эти выражения. ",
+                 "посчитать эти выражения. ",
+                 "вычислить произведение этих выражений. ",
+                 "посчитать произведение этих выражений. ",
+                 "найти произведение этих выражений. "
+    ];
+    return tasks[rand_int(tasks.length())];
+}
+
+function gen_header() -> string {
+    let headers = ["Дано ",
+                   "Представлено ",
+                   "Вы видите ",
+                   "Перед вами ",
+                   "Записано ",  
+                   "Имеется ",
+                   "Вам даётся "
+    ];
+    return headers[rand_int(headers.length())];
+}
+
+function gen_multipliers(level: int) -> int[][] {
+    let arr: int[][] = [];
+    for (let i = 0; i < level; i += 1) {
+        let count = rand_int(3) + 4;
+        let have_zero = false;
+        let cur: int[] = [];
+        let zero = rand_int(count);
+        for (let j = 0; j < count; j += 1) {
+            let elem = rand_int(level + 5) + 1;
+            cur.push(elem);
+        }
+        cur[zero] = 0;
+        arr.push(cur);
+    }
+    return arr;
+}
