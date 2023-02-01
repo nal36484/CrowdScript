@@ -1,0 +1,136 @@
+struct Puzzle {
+    descr: string,
+    input: string,
+    output: string,
+    wrong_output: string,
+    explanation: string
+}
+
+function gen_puzzle(level: int) -> Puzzle {
+    let numbers_arr = gen_numbers_arr(level);
+    let even_arr = gen_even_arr(numbers_arr);
+    let odd_arr = gen_odd_arr(numbers_arr);
+    let is_even = rand_bool();
+    let output = gen_output(odd_arr,is_even);
+    let wrong = gen_output(even_arr,is_even);
+    let is_odd = "нечётными";
+    if (is_even) {
+        is_odd = "чётными";
+        let temp = output;
+        output = wrong;
+        wrong = temp;
+    }
+    let input = gen_input(numbers_arr, is_even);
+    let header = gen_header();
+    let task = gen_task();
+    let descr = header + "некоторое количество массивов чисел, " + task + "какие из чисел являются " + is_odd + ". Каждый ответ поместите в квадратные скобки и числа запишите через запятую. " +
+        "Если таковых чисел нет укажите это. Например [4,2,6,8,6][Чётные числа отсутствуют].";
+    
+    return new Puzzle {
+        descr: descr,
+        input: input,
+        output: output,
+        wrong_output: wrong,
+        explanation: "Целое число называется чётным, если оно делится на 2 без остатка, и нечётным в противном случае. Например 5 / 2 = 2, остаток = 1, число 5 нечётное."
+    };
+}
+
+function gen_input(arr: int[][],is_even: bool) -> string {
+    let input = "";
+    for (let i = 0; i < arr.length(); i += 1) {
+        input += "[";
+        for (let j = 0; j < arr[i].length(); j += 1) {
+            if (j == arr[i].length() - 1) {
+                input += string(arr[i][j]) + "]";
+                break;
+        }
+            input += string(arr[i][j]) + ",";
+        }
+    }
+    return input;
+}
+
+function gen_output(arr: string[][], is_even: bool) -> string {
+    let output = "";
+    let zero = "[Нечётные числа отсутствуют]";
+    if (is_even) {
+        zero = "[Чётные числа отсутствуют]";
+    }
+    for (let i = 0; i < arr.length(); i += 1) {
+        output += "[";
+        if (arr[i].length() == 0) {
+            output += zero;
+        }
+        for (let j = 0; j < arr[i].length(); j += 1) {
+            if (j == arr[i].length() - 1) {
+                output += arr[i][j] + "]";
+                break;
+        }
+            output += arr[i][j] + ",";
+        }
+    }
+    return output;
+}
+
+function gen_even_arr(arr: int[][]) -> string[][] {
+    let ans: string[][] = [];
+    for (let i = 0; i < arr.length(); i += 1) {
+        let count = arr[i].length();
+        let cur: string[] = [];
+        for (let j = 0; j < count; j += 1) {
+            if(arr[i][j] % 2 == 0) {
+                cur.push(string(arr[i][j]));
+            }
+        }
+        ans.push(cur);
+    }
+    return ans;
+}
+
+function gen_odd_arr(arr: int[][]) -> string[][] {
+    let ans: string[][] = [];
+    for (let i = 0; i < arr.length(); i += 1) {
+        let count = arr[i].length();
+        let cur: string[] = [];
+        for (let j = 0; j < count; j += 1) {
+            if(arr[i][j] % 2 != 0) {
+                cur.push(string(arr[i][j]));
+            }
+        }
+        ans.push(cur);
+    }
+    return ans;
+}
+
+function gen_numbers_arr(level: int) -> int[][] {
+    let arr: int[][] = [];
+    for (let i = 0; i < level; i += 1) {
+        let cur: int[] = [];
+        let count = rand_int(5) + 5;
+        for (let j = 0; j < count; j += 1) {
+            cur.push(rand_int(level + 5) + 1);
+        }
+        arr.push(cur);
+    }
+    return arr;
+}
+
+function gen_task() -> string {
+    let tasks = ["определить ",
+                 "выяснить ",
+                 "запишите ",
+                 "укажите "
+    ];
+    return tasks[rand_int(tasks.length())];
+}
+
+function gen_header() -> string {
+    let headers = ["Перед вами ",
+                   "Перед вами записано ",
+                   "В наличии ",
+                   "Имеется ",
+                   "Мы видим ",  
+                   "У нас есть "
+    ];
+    return headers[rand_int(headers.length())];
+}
