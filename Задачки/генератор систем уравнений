@@ -1,0 +1,184 @@
+struct Puzzle {
+    descr: string,
+    input: string,
+    output: string,
+    wrong_output: string,
+    explanation: string
+}
+
+function gen_puzzle(level: int) -> Puzzle {
+    let sys = gen_system(level);
+    let input = gen_input(sys);
+    let decision = gen_decision(sys);
+    let wrong: string[] = [];
+    let output = gen_output(decision, wrong);
+    let wrong_output = gen_wrong(output,wrong);
+    let header = gen_header();
+    let task = gen_task();
+    let descr = header + " c двумя неизвестными, " + task + "методом почленного вычитания. В ответ запишите значения неизвестных, например: х = " + string(rand_int(10)) + ", y = " + string(rand_int(10)) +
+        ", если система не имеет решений - Нет действительных корней уравнения, или система имеет бесконечное множество решений - Система имеет бесконечное множество решений."
+    
+    return new Puzzle {
+        descr: descr,
+        input: input,
+        output: output,
+        wrong_output: wrong_output,
+        explanation: "По правилам математики уравнения системы можно вычитать. Наша задача в том, чтобы после вычитания исходных уравнений, получить такое уравнение, в котором останется только одно неизвестное." +
+            " Для этого не обходимо первое уравнение умножить на коэффициент неизвестного второго уравнения, а второе уравнение умножить на коэффициент того же неизвестного первого уравнения." +
+            " Например даны два уравнения: х + 5у = 7 и 3х - 2у = 4. Умножаем первое уравнение на коэффициент 3, получаем 3х + 15у = 21 и далее умножаем второе уравнение на коэффициент 1, получаем 3х - 2у = 4." +
+            "Вычитаем из первого уравнение второе, получаем 15у + 2у = 21 - 4, 17у = 17, у = 17 / 17, у = 1. Далее подставляем значение у в любое из исходных уравнений, и получаем х = 2." +
+            "Есть при вычитании уравнений мы получаем выражение 0 * у = 4, это означает что система не имеет действительных корней решения, есть мы получаем выражение 0 * у = 0 - система имеет бесконечное множество решений."
+    };
+}
+
+function gen_wrong(str: string, arr: string[]) -> string {
+    let wrong = "";
+    if (str == "Нет действительных корней уравнения") {
+        wrong += "Система имеет бесконечное множество решений";
+    } else if (str == "Система имеет бесконечное множество решений") {
+        wrong += "Нет действительных корней уравнения";
+    } else {
+        wrong += arr[rand_int(4)]; 
+    }
+    return wrong;
+}
+
+function gen_output(arr: string[][], wrong: string[]) -> string {
+    let x1 = int(arr[0][0]);
+    let y1 = int(arr[0][2]);
+    let sum1 = int(arr[0][3]);
+    
+    let x2 = int(arr[1][0]);
+    let y2 = int(arr[1][2]);
+    let sum2 = int(arr[1][3]);
+    
+    if ((y1 - y2) == 0 && (x1 - x2) == 0 && (sum1 - sum2) == 0) {
+        return "Система имеет бесконечное множество решений";
+    }
+    if ((y1 - y2) == 0 && (x1 - x2) == 0 && (sum1 - sum2) != 0) {
+        return "Нет действительных корней уравнения";
+    } 
+    let x = 0.0;
+    let y = 0.0;
+    if (x1 - x2 == 0) {   
+        y = float((sum1 - sum2)) / float((y1 - y2));
+        x = float((float(sum1) - (float(y1) * y))) / float(x1);
+    } else {
+        x = float((sum1 - sum2)) / float((x1 - x2));
+        y = float((float(sum1) - (float(x1) * x))) / float(y1);
+    }
+    let ans = "x = " + string(x) + ", y = " + string(y);
+    wrong.push("x = " + string(x + 1.0) + ", y = " + string(y));
+    wrong.push("x = " + string(x - 1.0) + ", y = " + string(y));
+    wrong.push("x = " + string(x) + ", y = " + string(y + 1.0));
+    wrong.push("x = " + string(x) + ", y = " + string(y - 1.0));
+        
+    return ans;
+}
+
+function gen_decision(arr: string[][]) -> string[][] {
+    let decision: string[][] = [];
+    let coef1 = int(arr[0][0]);
+    if (arr[0][4] == "true" && arr[0][1] == " - ") {
+        coef1 = 0 - coef1;
+    }
+    let coef2 = int(arr[1][0]);
+    if (arr[1][4] == "true" && arr[1][1] == " - ") {
+        coef2 = 0 - coef2;
+    }
+    let x1 = coef1;
+    let y1 = int(arr[0][2]);
+    if (arr[0][4] == "false" && arr[0][1] == " - ") {
+        y1 = 0 - y1;
+    }
+    let sum1 = int(arr[0][3]);
+    let x2 = coef2;
+    let y2 = int(arr[1][2]);
+    if (arr[1][4] == "false" && arr[1][1] == " - ") {
+        y2 = 0 - y2;
+    }
+    let sum2 = int(arr[1][3]);
+    let list1: string[] = [];
+    list1.push(string(x1*coef2));
+    list1.push(arr[0][1]);
+    list1.push(string(y1*coef2));
+    list1.push(string(sum1*coef2));
+    list1.push(arr[0][4]);
+    let list2: string[] = [];
+    list2.push(string(x2*coef1));
+    list2.push(arr[1][1]);
+    list2.push(string(y2*coef1));
+    list2.push(string(sum2*coef1));
+    list2.push(arr[1][4]);
+    decision.push(list1);
+    decision.push(list2);
+    
+    return decision;
+}
+
+function gen_input(arr: string[][]) -> string {
+    let str = "";
+    for (let i = 0; i < arr.length(); i += 1) {
+        let x = arr[i][0] + " * x";
+        if (arr[i][0] == "1") {
+            x = "x";
+        }
+        let y = arr[i][2] + " * y";
+        if (arr[i][2] == "1") {
+            y = "y";
+        }
+        let cur = x + arr[i][1] + y + " = " + arr[i][3];
+        if (arr[i][4] == "true") { 
+            cur = y + arr[i][1] + x + " = " + arr[i][3];
+        }
+        str += cur;
+        if (i == 0) {
+            str += "\n";
+        }
+    }  
+    return str;
+}
+
+function gen_system(level: int) -> string[][] {
+    let ans: string[][] = [];
+    for (let i = 0; i < 2; i += 1) {
+        let multy_x = string(rand_int(level) + 1);
+        let multy_y = string(rand_int(level) + 1);
+        let sign = " + ";
+        if (rand_bool()) {
+            sign = " - ";
+        }
+        let sum = rand_int(level + 5) + 1;
+        if (rand_bool()) {
+            sum = 0 - sum;
+        }
+        let order = "false";
+        if (rand_bool()) {
+            order = "true";
+        }
+        let str: string[] = [];
+        str.push(multy_x);
+        str.push(sign);
+        str.push(multy_y);
+        str.push(string(sum));
+        str.push(order);
+        ans.push(str);
+    }
+    return ans;
+}
+
+function gen_task() -> string {
+    let tasks = ["решите её ","найдите её неизвестные ", "решите систему "];
+    return tasks[rand_int(tasks.length())];
+}
+
+function gen_header() -> string {
+    let headers = ["Вы видите систему уравнений ",
+                   "Перед вами система уравнений ",
+                   "Нам дана система уравнений ",
+                   "Имеется система уравнений ",
+                   "Мы видим систему уравнений ",  
+                   "Дана система уравнений "
+                  ];
+    return headers[rand_int(headers.length())];
+}
