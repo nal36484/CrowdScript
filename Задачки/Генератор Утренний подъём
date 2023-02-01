@@ -1,0 +1,195 @@
+struct Puzzle {
+    descr: string,
+    input: string,
+    output: string,
+    wrong_output: string,
+}
+
+function gen_puzzle(level: int) -> Puzzle {
+    if (level > 20) {
+        level = 20;
+    }
+    let output_arr: bool[] = [];
+    for (let i = 0 ;i <= level; i += 1) {
+        output_arr.push(false);
+    }
+    let timetable = ["Подъём в 8:00. ",
+                    "Одеться, умыться - с 8:00 до 8:20. ",
+                    "Завтрак - с 8:20 до 8:40. ",
+                    "Утренняя гимнастика с 8:40 до 9:00. ",
+                    "Изучение теории – с 9:00 до 10:00. ",
+                    "Работа над проектом - с 10:00 до 19:00. ",
+                    "Перерыв на обед – с 13:00 до 14:00. ",
+                    "Ужин – с 19:00 до 19:15. ",
+                    "Поездка в спортзал, бассейн – с 19:15 до 19:45. ",
+                    "Занятия в Спортзале, бассейне – с 19:45 до 21:30. ",
+                    "Свободный досуг, отдых - с 21:30 до 23:30. ",
+                    "Подготовка ко сну - с 23:30 до 0:00. ",
+                    "Сон – с 0:00 до 8:00. "];
+    let questions = ["Будет ли бодрствовать ",
+                    "Будет ли одеваться и умываться ",
+                    "Будет ли завтракать ",
+                    "Будет ли заниматься гимнастикой ",
+                    "Будет ли изучать теорию ",
+                    "Будет ли работать над проектом ",
+                    "Будет ли обедать ",
+                    "Будет ли ужинать ",
+                    "Будет ли ехать в спортзал, бассейн ",
+                    "Будет ли заниматься в спортзале, бассейне ",
+                    "Будет ли отдыхать, ",
+                    "Будет ли готовиться ко сну ",
+                    "Будет ли спать ",
+                    "Успеет ли поужинать ",
+                    "Будет ли находиться в спортзале, бассейне ",
+                    "Позавтракает ли сегодня уже ",
+                    "Сделает ли уже гимнастику ",
+                    "Приедет ли сегодня из спортзала, бассейна ",
+                    "Успеет ли пообедать ",
+                    "Закончит ли работу ",
+                    "Закончит ли изучать теорию "];
+    let true_time = [[480,480,500,520,540,600,780,1140,1155,1185,1290,1410,0,1155,1185,520,540,1290,840,1140,600],
+                     [1440,500,520,540,600,1140,840,1155,1185,1290,1410,1440,480,1440,1290,1440,1440,1440,1440,1440,1440]];
+    let ending = gen_string(timetable);
+    let header = gen_header();
+    let task = gen_task();
+    let descr = header + "расписание некого человека на день в хаотичном порядке и список вопросов. " + task + ", выполняет ли человек следующие действия в текущий момент времени." +
+                   " Ответы запишите в квадратных скобках через запятую, например [да,нет].\n" + ending;
+    let input_arr = gen_input_arr(questions, level, output_arr, true_time);
+    let input = gen_input(input_arr);
+    let output = gen_output(output_arr);
+    let wrong_output = gen_wrong(output_arr);
+    
+    return new Puzzle {
+        descr: descr,
+        input: input,
+        output: output,
+        wrong_output: wrong_output  
+    };
+}
+
+function gen_wrong(arr: bool[]) -> string {
+    let str = "[";
+    let yes = "да";
+    let no = "нет";
+    let wrong = rand_int(arr.length());
+    for(let i = 0; i < arr.length(); i += 1) {
+        let cur = no;
+        if (arr[i]) {
+            cur = yes;
+        }
+        if (i == wrong) {
+            if (cur == no) {
+                cur = yes;
+            } else {
+                cur = no;
+            }
+        }
+        if (i == arr.length() - 1) {
+            str += cur + "]";
+            break;
+        }
+        str += cur + ",";
+    }
+    return str;
+}
+
+function gen_output(arr: bool[]) -> string {
+    let str = "[";
+    for(let i = 0; i < arr.length(); i += 1) {
+        let cur = "нет";
+        if (arr[i]) {
+            cur = "да";
+        }
+        if (i == arr.length() - 1) {
+            str += cur + "]";
+            break;
+        }
+        str += cur + ",";
+    }
+    return str;
+}
+
+function gen_input(arr: string[]) -> string {
+    let str = "[";
+    for(let i = 0; i < arr.length(); i += 1) {
+        if (i == arr.length() - 1) {
+            str += arr[i] + "]";
+            break;
+        }
+        str += arr[i] + " ";
+    }
+    return str;
+}
+
+function gen_input_arr(questions: string[], level: int, output_time: bool[], true_time: int[][]) -> string[] {
+    let arr: string[] = [];
+    let map: {int: int} = {};
+    for (let i = 0; i <= level; i += 1) {
+        let cur = rand_int(questions.length());
+        while (map.contains(cur) && cur < questions.length() - 1) {
+            cur += 1;
+        }
+        while (map.contains(cur) && cur > 0) {
+            cur -= 1;
+        }
+        let which = gen_which();
+        let hour = string(rand_int(24));
+        let minutes = string(rand_int(60));
+        let time = int(hour) * 60 + int(minutes);
+        if (true_time[0][cur] <= time && time < true_time[1][cur]) {
+            output_time[i] = true;
+            if (cur == 5 && time >= 780 && time < 840) {
+                output_time[i] = false;
+            }
+        }
+        if (int(minutes) < 10) {
+            minutes = "0" + minutes;
+        } 
+        arr.push(questions[cur] + which + " человек в " + hour + ":" + minutes + "?");
+        map[cur] = cur;
+    }
+    return arr;
+}
+
+function gen_string(arr: string[]) -> string {
+    let str = "";
+    let map: {int: int} = {};
+    for (let i = 0; i < arr.length(); i += 1) {
+        let cur = rand_int(arr.length());
+        while (map.contains(cur) && cur < arr.length() - 1) {
+            cur += 1;
+        }
+        while (map.contains(cur) && cur > 0) {
+            cur -= 1;
+        }
+        if (i == arr.length() - 1) {
+            str += arr[cur];
+            map[cur] = cur;
+            break;
+        }
+        map[cur] = cur;
+        str += arr[cur] + "\n ";
+    }
+    return str;
+}
+
+function gen_task() -> string {
+    let tasks = ["Определите","Ответье","Укажите","Установите","Выясните"];
+    return tasks[rand_int(tasks.length())];
+}
+
+function gen_header() -> string {
+    let headers = ["Вы видите перед собой ",
+                   "Вам дано ",
+                   "Дано ",
+                   "Перед вами ",
+                   "Вот ",
+                   "Записано "
+                  ];
+    return headers[rand_int(headers.length())];
+}
+
+function gen_which() -> string {
+    let which = ["этот ","данный "];
+    return which[rand_int(which.length())];
+}
