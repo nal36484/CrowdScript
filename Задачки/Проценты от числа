@@ -1,0 +1,216 @@
+struct Puzzle {
+    descr: string,
+    input: string,
+    output: string,
+    wrong_output: string,
+    explanation: string
+}
+
+function gen_puzzle(level: int) -> Puzzle {
+    let numbers = gen_numbers(level);
+    let input = gen_input(numbers);
+    let output_arr = gen_output_arr(numbers);
+    let output = gen_output(output_arr);
+    let wrong_arr = gen_wrong_arr(output_arr);
+    let wrong = gen_output(wrong_arr);
+    let example2 = rand_int(100) + 50;
+    let example1 = rand_int(example2);
+    let example = gen_example(numbers);
+    let example_float = gen_example3(numbers);
+    let example3 = gen_float_string(example_float);
+    let answer = gen_answer(example_float);
+    let total = int(float(answer));
+    if (is_bigger(float(answer))) {
+        total += 1;
+    }
+    let explanation = "Чтобы посчитать процент, который первое число составляет от второго, необходимо первое число умножить на 100 и затем разделить его на второе число. " +
+        "Например первое число = " + string(example1) + ", а второе = " + string(example2) + ". Процент первого число от второго составляет (" + string(example1) + " * 100%) / " +
+        string(example2) + " = " + string((float(example1) * 100.0) / float(example2)) + "%. В нашём примере нам дано - " + example + "Посчитаем процент, который состовляет каждое число и получим " +
+        example3 + " соответственно. Перемножив проценты, получим " + answer + ". Ответ округлим до целого числа и получим " + string(total) + ".";
+    let header = gen_header();
+    let task = gen_task();
+    let descr =  header + "некоторое количество примеров. В каждом из примеров есть \"Главное число\" и \"Другие числа\", " + task + "какой процент от главного числа занимают эти числа. " +
+        "В ответ записать произведение полученных \"процентов\", округлённых до целого числа. Если примеров несколько ответы запишите через запятую. Например " + string(rand_int(2000) + 500) + "," +
+        string(rand_int(2000) + 500) ;
+    
+    return new Puzzle {
+        descr: descr,
+        input: input,
+        output: output,
+        wrong_output: wrong,
+        explanation: explanation
+    };
+}
+
+function gen_answer(arr: float[]) -> string {
+    let sum = 1.0;
+    for (let i = 0; i < arr.length(); i += 1) {
+        sum *= arr[i];
+    }
+    return string(sum);
+}
+
+function gen_float_string(arr: float[]) -> string {
+    let str = "";
+    for (let i = 0; i < arr.length(); i += 1) {
+        str += string(arr[i]) + "% ";
+    }
+    return str;
+}
+
+function gen_example3(arr: int[][]) -> float[] {
+    let arr_example: float[] = [];
+    let main = float(arr[0][0]);
+    for (let i = 1; i < arr[0].length(); i += 1) {
+        let cur = (float(arr[0][i]) * 100.0) / main;
+        arr_example.push(cur);
+    }
+    return arr_example;
+}
+
+function gen_example(arr: int [][]) -> string {
+    let str = "\"Главное число\" = " + string(arr[0][0]) + "; \"Другие числа\": ";
+    for	(let i = 1; i < arr[0].length(); i += 1) {
+            if (i == arr[0].length() - 1) {
+            str += string(arr[0][i]) + ". ";
+            break;
+        }
+        str += string(arr[0][i]) + ",";
+        }
+    return str;
+}
+
+function gen_wrong_arr(arr: string[]) -> string[] {
+    let wrong = rand_int(arr.length());
+    let out: string[] = [];
+    for (let i = 0; i < arr.length(); i += 1) {
+        if (i == wrong) {
+            let cur = int(arr[i]);
+            if (cur == 0) {
+                cur += 2;
+            }
+            cur = [cur + 1, cur - 1][rand_int(2)];
+            out.push(string(cur));
+            continue;
+        }
+        out.push(arr[i]);
+    }
+    return out;
+}
+
+function is_bigger(value: float) -> bool{
+    let is_big = false;
+    let str = string(value);
+    let number = "";
+    for (let i = 0; i < str.length(); i += 1) {
+        let ch = str[i];
+        if (ch == ".") {
+            if (i + 1 < str.length()) {
+                number = str[i + 1];
+                if (int(number) >= 5) {
+                    is_big = true;
+                }
+            }
+            break;
+        }
+    }
+    return is_big;
+}
+
+function gen_output(arr: string[]) -> string {
+    let str = "";
+    for (let i = 0; i < arr.length(); i += 1) {
+        if (i == arr.length() - 1) {
+            str += string(arr[i]);
+            break;
+        }
+        str += string(arr[i]) + ",";
+    }
+    return str;
+}
+
+function gen_output_arr(arr: int[][]) -> string[] {
+    let out: string[] = [];
+    for	(let i = 0; i < arr.length(); i += 1) {
+        let main = arr[i][0];
+        let result = 0;
+        let cur = 1.0;
+        for (let j = 1; j < arr[i].length(); j += 1) {
+            if (arr[i][j] == 0) {
+                cur = 0.0;
+                break;
+            }
+            cur = cur * ((float(arr[i][j]) * 100.0) / float(main));
+        }
+        if (cur != 0.0) {
+            result = int(cur);
+            if (is_bigger(cur)){
+                result += 1;
+            }      
+        }
+        out.push(string(result));
+    }
+    return out;
+}
+
+function gen_input(arr: int[][]) -> string {
+    let str = "";
+    for(let i = 0; i < arr.length(); i += 1) {
+        str += "[Главное число = " + string(arr[i][0]) + "; Другие числа: ";
+        for	(let j = 1; j < arr[i].length(); j += 1) {
+            if (j == arr[i].length() - 1) {
+            str += string(arr[i][j]) + "]";
+            break;
+        }
+        str += string(arr[i][j]) + ",";
+        }
+    }
+    return str;
+}
+
+function gen_numbers(level: int) -> int[][] {
+    let numbers: int[][] = [];
+    
+    for (let i = 0; i < level; i += 1) {
+        let map: {int: int} = {};
+        let cur_numbers : int[] = [];
+        let count = rand_int(2) + 2;
+        let main_number = rand_int(level * 100) + 2 + level;
+        cur_numbers.push(main_number);
+        for (let j = 0; j < count; j += 1) {
+            let cur = rand_int(main_number);
+            while(map.contains(cur) && cur < main_number) {
+                cur += 1;
+            }
+            while(map.contains(cur) && cur > 0) {
+                cur -= 1;
+            }
+            cur_numbers.push(cur);
+            map[cur] = cur;
+        }
+        numbers.push(cur_numbers);
+    }
+    return numbers;
+}
+
+function gen_task() -> string {
+    let tasks = ["определить ",
+                 "выяснить ",
+                 "посчитать ",
+                 "найти ",
+                 "рассчитать ",
+                 "вычислить "
+    ];
+    return tasks[rand_int(tasks.length())];
+}
+
+function gen_header() -> string {
+    let headers = ["Вы видите ",
+                   "Перед вами ",
+                   "В наличии ",
+                   "Имеется ",
+                   "Мы видим ",  
+                   "У нас есть "
+    ];
+    return headers[rand_int(headers.length())];
+}
