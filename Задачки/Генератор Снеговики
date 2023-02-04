@@ -1,0 +1,136 @@
+struct Puzzle {
+    descr: string,
+    input: Canvas,
+    output: string,
+    wrong_output: string,
+    explanation: string
+}
+
+function gen_puzzle(level: int) -> Puzzle {
+    let count = rand_int(level) + 8 + level;
+    let figure_count = [0,0,0];
+        
+    let c = new Canvas{};
+    c.init(800, 600, rgba(rand_int(200) + 56, rand_int(200) + 56, rand_int(200) + 56, 1.0));
+    let color = [rgb(0,0,0), rgb(255,0,0), rgb(0,0,255)];
+    
+    for (let i = 0; i < count; i += 1) {
+        let x = rand_int(700) + 50;
+        let y = rand_int(500) + 50;
+        
+        let figure = random_figure();
+        let size = rand_int(10) + 10;
+        draw_figure(c, x, y, figure, size, color, figure_count);
+    }
+    
+    let output = get_output(figure_count);
+    let wrong_output = gen_wrong(output);
+    let header = gen_header();
+    let task = gen_task();
+    let action = gen_action();
+    let descr = header + "некоторое количество фигур: Красные треугольники - морковки, синие трапеции - вёдра, чёрные линии - палки. " + task + "сколько снеговиков можно из этого " + action +
+        ", если для одного снеговика требуется - две палки, одно ведро и одна морковка. А снег у нас безлимитный. Ответ записать числом.";
+    
+   let explanation = "Для того, чтобы определить количество снеговиков, которых мы сможем слепить, сначала запишем количество предметов, которые мы видим на картинке." +
+       "Палки = " + string(figure_count[0]) + ", Морковки = " + string(figure_count[2]) + ", Вёдра = " + string(figure_count[1]) + ". Количество палок разделим на два, так как для построения " + 
+       "одного снеговика нам необходимо 2 палки. В итоге получим " + string(figure_count[0] / 2) + ", " + string(figure_count[2]) + ", " + string(figure_count[1]) + " соответственно. " +
+       "Теперь необходимо определить минимальное число из этих трёх что мы имеем. Минимальное число = " + output + " . Это и будет нашим ответом.";
+
+    return new Puzzle {
+        descr: descr,
+        input: c,
+        output: output,
+        wrong_output: wrong_output,
+        explanation: explanation
+    };
+}
+
+function gen_wrong(out: string) -> string {
+    let wrong = int(out);
+    if (wrong == 0) {
+        wrong += 1;
+    } else {
+        wrong = [wrong + 1, wrong - 1][rand_int(2)];
+    }
+    return string(wrong);
+}
+
+function get_output(arr: int[]) -> string {
+    let min = arr[0] / 2;
+    if (arr[1] < min) {
+        min = arr[1];
+    }
+    if (arr[2] < min) {
+        min = arr[2];
+    }
+    return string(min);
+}
+
+function random_figure() -> string { return ["hand", "bucket", "carrot", "hand"][rand_int(4)] }
+
+function draw_figure(c: Canvas, x: int, y: int, figure: string, size: int, color: Color[], figure_count: int[]) {
+    let other_size = size * 2;
+    if (rand_bool()) { other_size = size / 2; }
+    
+    let line = rand_int(3) + 1;
+   
+    if (figure == "hand") {
+        let x1 = rand_int(700) + 50;
+        let y1 = rand_int(500) + 50;
+        let x2 = [x1 + 40, x1 - 40][rand_int(2)];
+        let y2 = [y1 + 40, y1 - 40][rand_int(2)];
+        c.line(x2, y1, x1, y2, color[0], 5);
+        figure_count[0] += 1;
+    }
+    
+    if (figure == "bucket") {
+        let points: Point2D[] = []; 
+        let ang1 = float(rand_int(360)) * 3.1415926 / 180.0;
+        let ang2 = ang1 + 45.0 * 3.1415926 / 180.0;
+        let ang3 = ang2 + 90.0 * 3.1415926 / 180.0;
+        let ang4 = ang3 + 135.0 * 3.1415926 / 180.0;
+        let angs: float[] = [];
+        angs.push(ang1);
+        angs.push(ang2);
+        angs.push(ang3);
+        angs.push(ang4);
+        for (let i = 0; i < 4; i += 1) {
+            points.push(new Point2D{x: float(x) + float(size) * cos(angs[i]), y: float(y) + float(size) * sin(angs[i])});
+        }
+        c.fill_polygon(points, color[2], color[2], line);
+        figure_count[1] += 1;
+    }
+    if (figure == "carrot") {
+        let rand_kind = rand_int(4);
+        let points: Point2D[] = [];
+        let ang0 = float(rand_int(360)) * 3.1415926 / 180.0;
+        let angs: float[] = [];
+        angs = [ang0, ang0 + 120.0 * 3.1415926 / 180.0, ang0 + 240.0 * 3.1415926 / 180.0]
+        for (let i = 0; i < 3; i += 1) {
+            points.push(new Point2D{x: float(x) + float(size) * cos(angs[i]), y: float(y) + float(size) * sin(angs[i])});
+        }
+        c.fill_polygon(points, color[1], color[1], line);
+        figure_count[2] += 1;
+    } 
+} 
+
+function gen_action() -> string {
+    let actions = ["построить", "слепить", "соорудить", "сделать", "создать", "возвести", "сконструировать"];
+    return actions[rand_int(actions.length())];
+}
+
+function gen_task() -> string {
+    let tasks = ["Определить ", "Посчитать ", "Записать ", "Сосчитать "];
+    return tasks[rand_int(tasks.length())];
+}
+
+function gen_header() -> string {
+    let headers = ["Дано  ",
+                   "Представлено ",
+                   "Вы видите ",
+                   "Перед вами ",
+                   "Нарисовано ",  
+                   "Изображено "
+    ];
+    return headers[rand_int(headers.length())];
+}
