@@ -1,0 +1,153 @@
+struct Puzzle {
+    descr: string,
+    input: string,
+    output: string,
+    wrong_output: string,
+    explanation: string
+}
+
+function gen_puzzle(level: int) -> Puzzle {
+    
+    let numbers = gen_numbers(level);
+    let header = gen_header();
+    let task = gen_task();
+    let descr = header + "некоторое количество примеров. В каждом примере имеется целое число - модификатор силы и дробь - предварительная сила разрушения. " + task + 
+        "силу землетрясения, если для её вычисления нужно модификатор силы, разделить на предварительную силу разрушения. Силу землетрясения округлить до целого числа. " +
+        "Если примеров несколько, ответ запишите через запятую, например " + string(rand_int(10) + 1) + "," + string(rand_int(10) + 1);
+    let ans_float = calculate_ans(numbers);
+    let ans_int = float_to_int(ans_float);
+    let input = gen_input(numbers);
+    let output = gen_output(ans_int);
+    let wrong = rand_int(level);
+    let wrong_ans = gen_wrong_arr(ans_int, wrong);
+    let wrong_output = gen_output(wrong_ans);
+    let explanation = "Для того, чтобы разделить целое число на дробь, необходимо умножить его на знаменатель, и затем полученное произведение разделить на числитель. " +
+        "Например: нам дано число " + string(numbers[0][0]) + " - модификатор силы и дробь " + string(numbers[0][1]) + "/" + string(numbers[0][2]) + 
+        " - предварительная сила разрушения, где числитель равен " + string(numbers[0][1]) + ", а знаменатель " + string(numbers[0][2]) + 
+        " соответственно. Умножим модификатор силы на знаменатель и поделим на числитель, получится выражение " + string(numbers[0][0]) + " * " + string(numbers[0][2]) + 
+        " / " + string(numbers[0][1])  +  " = " + string(ans_float[0]) + ", округлим ответ до целого числа и получим " + string(ans_int[0]) + ".";
+    
+    return new Puzzle {
+        descr: descr,
+        input: input,
+        output: output,
+        wrong_output: wrong_output,
+        explanation: explanation
+    };
+}
+
+function gen_wrong_arr(arr: int[], wrong: int) -> int[]{
+    let ans: int[] = [];
+    for (let i = 0; i < arr.length(); i += 1) {
+        if (i == wrong) {
+            let cur = [arr[i] + 1, arr[i] - 1][rand_int(2)];
+            ans.push(cur);
+            continue;
+        }
+        ans.push(arr[i]);
+    }
+    return ans;
+}
+
+function gen_input(arr: int[][]) -> string {
+    let input = "";
+    for (let i = 0; i < arr.length(); i += 1) {
+        input += "[" + string(arr[i][0]) + ", " + string(arr[i][1]) + "/" + string(arr[i][2]) + "]"; 
+    }
+    return input;
+}
+
+function gen_output(arr: int[]) -> string {
+    let out = "";
+    for (let i = 0; i < arr.length(); i += 1) {
+        if (i == arr.length() - 1) {
+            out += string(arr[i]);
+            break;
+        }
+        out += string(arr[i]) + ",";
+    }
+    return out;
+}
+
+function float_to_int(arr: float[]) -> int[] {
+    let ans: int[] = [];
+    for (let i = 0; i < arr.length(); i += 1) {
+        let cur = int(arr[i]);
+        if (is_bigger(arr[i])) {
+            cur += 1;
+            if (arr[i] < 0.0) {
+                cur -= 2;
+            }
+        }
+        ans.push(cur);
+    }
+    return ans;
+}
+
+function is_bigger(value: float) -> bool{
+    let is_big = false;
+    let str = string(value);
+    let number = "";
+    for (let i = 0; i < str.length(); i += 1) {
+        let ch = str[i];
+        if (ch == ".") {
+            if (i + 1 < str.length()) {
+                number = str[i + 1];
+                if (int(number) >= 5) {
+                    is_big = true;
+                }
+            }
+            break;
+        }
+    }
+    return is_big;
+}
+
+function calculate_ans(arr: int[][]) -> float[] {
+    let ans: float[] = [];
+    for (let i = 0; i < arr.length(); i += 1) {
+        let power = float(arr[i][0]);
+        let number = float(arr[i][1]);
+        let delimiter = float(arr[i][2]);
+        let cur = power * delimiter / number;
+        ans.push(cur);
+    }
+    return ans;
+}
+
+function gen_numbers(level: int) -> int[][] {
+    let arr: int[][] = [];
+    for (let i = 0; i < level; i += 1) {
+        let cur: int[] = [];
+        let power = rand_int(level + 1) + 1;
+        if (rand_bool()) {
+            power = 0 - power;
+        }
+        let num = rand_int(level + 5) + level + 1;
+        let delimiter = rand_int(level + 5) + level + 1;
+        while (delimiter == num) {
+            delimiter = rand_int(level + 5) + level + 1;
+        }
+        cur.push(power);
+        cur.push(num);
+        cur.push(delimiter);
+        arr.push(cur);
+    }
+    return arr;
+} 
+
+function gen_task() -> string {
+    let tasks = ["Найти ","Определить ","Записать ","Вычислите ","Указать ","Найдите ","Определите ","Вычислите ","Укажите ","Запишите "];
+    return tasks[rand_int(tasks.length())];
+}
+
+function gen_header() -> string {
+    let headers = ["Дано  ",
+                   "Представлено ",
+                   "Вы видите ",
+                   "Перед вами ",
+                   "Записано ",  
+                   "Перечислено "
+    ];
+    return headers[rand_int(headers.length())];
+}
