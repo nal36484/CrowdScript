@@ -1,0 +1,118 @@
+struct Puzzle {
+    descr: string,
+    input: string,
+    output: string,
+    wrong_output: string,
+    explanation: string
+}
+
+function gen_puzzle(level: int) -> Puzzle {
+    let points1 = rand_int(level + 1) + level * 2 + level;
+    let points2 = points1 + rand_int(level + 1);
+    let sub = (points1 + points2) / 2;
+    let example = (rand_int(level + 1) + level * 2 + level) * 2;
+    let header = gen_header();
+    let task = gen_task();
+    let descr = header + "некоторое количество команд, известно что у первой команды " + string(points1) + " очков, у второй команды " + string(points2) + 
+        " очков. " + task + "количество очков у остальных команд, если у каждой нечётной команды количество очков равно сумме двух предыдущих команд, " +
+        "а у каждой чётной команды количество очков на " + string(sub) + " меньше чем у предыдущей. Если команд с неизвестным количеством очков несколько, " + 
+        "ответ запишите через запятую, например - " + string(example) + "," + string(example / 2);
+    let teams = ["команда","команды","команд"];
+    let input = gen_input(teams, level + 2);
+    let output_arr = gen_output_arr(level, points1, points2, sub);
+    let output = gen_output(output_arr);
+    let wrong_arr = gen_wrong_arr(output_arr);
+    let wrong_output = gen_output(wrong_arr);
+    let explanation = "Целое число называется чётным, если оно делится на 2 без остатка, и нечётным в противном случае. Команда под номером 3 является нечётной, " + 
+        "а команда под номером 4 чётной. Значит количество очков у третьей команды будет равняться " + string(points1)  + " + " + string(points2) + " = " +
+        string(points1 + points2) + ". А количество очков у четвёртой команды будет равняться " + string(points1 + points2) + " - " + string(sub) + " = " +
+        string(points1 + points2 - sub) + " и так далее.";
+    
+    return new Puzzle {
+        descr: descr,
+        input: input,
+        output: output,
+        wrong_output: wrong_output,
+        explanation: explanation
+    };
+}
+
+function gen_wrong_arr(arr: int[]) -> int[] {
+    let out: int[] = [];
+    let wrong = rand_int(arr.length());
+    for (let i = 0; i < arr.length(); i += 1) {
+        if (i == wrong) {
+            let wrong_out = [arr[i] + 1, arr[i] - 1][rand_int(2)];
+            out.push(wrong_out);
+            continue;
+        }
+        out.push(arr[i]);
+    }
+    return out;
+}
+
+function gen_output(arr: int[]) -> string {
+    let str = "";
+    for (let i = 0; i < arr.length(); i += 1) {
+        if (i == arr.length() - 1 ) {
+            str += string(arr[i]);
+            break;
+        }
+        str += string(arr[i]) + ",";
+    }
+    return str;
+}
+
+function gen_output_arr(level: int, points1: int, points2: int, sub: int) -> int[] {
+    let arr: int[] = [];
+    let prev = points1 + points2;
+    let prev_prev = points2;
+    arr.push(prev);
+    for (let i = 1; i < level; i += 1) {
+        let cur = prev;
+        if (i % 2 == 1) {
+            cur -= sub;
+        } else {
+            cur += prev_prev;
+        }
+        prev_prev = prev;
+        prev = cur;
+        arr.push(cur);
+        
+    }
+    return arr;
+}
+
+function gen_input(arr: string[], level: int) -> string {
+    let str = string(level) + " ";
+    let rem = level % 100;
+    if (rem > 19) {
+        rem %= 10;
+    }
+    if (rem == 1) {
+        str += arr[0];
+    } else if (rem == 2 || rem == 3 || rem == 4) {
+        str += arr[1];
+    } else {
+        str += arr[2];
+    }
+    return str;
+}
+
+function gen_task() -> string {
+    let tasks = ["Определить ","Выяснить ","Запишите ","Укажите ","Определите ","Вычислите ","Выясните ","Указать ","Записать ","Указать "];
+    return tasks[rand_int(tasks.length())];
+}
+
+function gen_header() -> string {
+    let headers = ["Перед вами ",
+                   "Перед вами записано ",
+                   "В наличии ",
+                   "Имеется ",
+                   "Мы видим ",  
+                   "У нас есть ",
+                   "Дано ",
+                   "Нам дано "
+    ];
+    return headers[rand_int(headers.length())];
+}
