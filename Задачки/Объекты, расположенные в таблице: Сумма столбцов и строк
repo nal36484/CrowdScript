@@ -1,0 +1,60 @@
+struct Puzzle {
+    descr: string,
+    input: Canvas,
+    output: string,
+    wrong_output: string,
+    explanation: string
+}
+
+function gen_puzzle(level: int) -> Puzzle {
+    
+    let black = rgb(0,0,0);
+    let c = new Canvas{};
+    c.init(800, 600, rgba(rand_int(256), rand_int(256), rand_int(256), 1.0));
+    let rows = rand_int(level + 1) + level + 1;
+    let cols = rand_int(level + 1) + level + 1;
+    let row_lines = 750 / (rows + 1);
+    let cols_lines = 550 / (cols + 1);
+    for (let i = 50; i <= 750; i += row_lines) {
+        if (i + row_lines > 750) {
+            c.line(750,50,750,550,black,3);
+            break;
+        }
+        c.line(i,50,i,550,black,3);
+    }
+    for (let i = 50; i <= 550; i += cols_lines) {
+        if (i + cols_lines > 550) {
+            c.line(50,550,750,550,black,3);
+            break;
+        }
+        c.line(50,i,750,i,black,3);
+    }
+    let header = gen_header();
+    let task = gen_task();
+    let descr = header + " определённого размера. " + task + "сумму строк и столбцов в этой таблице."
+    
+    return new Puzzle {
+        descr: descr,
+        input: c,
+        output: string(rows + cols),
+        wrong_output: string([rows + cols + 1, rows + cols - 1][rand_int(2)]),
+        explanation: "Для того чтобы посчитать сумму строк и столбцов в этой таблице. Необходимо посчитать сумму строк = " + string(cols) + " и сумму столбцов = " +
+            string(rows) + ". Складываем эти значения и получаем " + string(cols) + " + " + string(rows) + " = " + string(cols + rows)
+    };
+}
+
+function gen_task() -> string {
+    let tasks = ["Определить ", "Необходимо посчитать ", "В ответ записать ", "Необходимо сосчитать "];
+    return tasks[rand_int(tasks.length())];
+}
+
+function gen_header() -> string {
+    let headers = ["Дана таблица ",
+                   "Представлена таблица ",
+                   "Вы видите таблицу",
+                   "Перед вами таблица",
+                   "Нарисована таблица",  
+                   "Изображена таблица "
+    ];
+    return headers[rand_int(headers.length())];
+}
