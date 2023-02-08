@@ -1,0 +1,168 @@
+struct Puzzle {
+    descr: string,
+    input: string,
+    output: string,
+    wrong_output: string,
+    explanation: string
+}
+
+function gen_puzzle(level: int) -> Puzzle {
+    let numbers = gen_numbers(level);
+    let input = gen_input(numbers);
+    let answers = ["верно","неверно"];
+    let output_arr = gen_output_arr(numbers);
+    let output = gen_output(output_arr);
+    let wrong_output = gen_wrong(output_arr);
+    let header = gen_header();
+    let task = gen_task();
+    let example = gen_example(numbers);
+    let descr = header + "некоторое количество неравенств. " + task + "верны ли эти неравенства. В ответ запишите \"верно\" или \"неверно\". " +
+        "Если неравенств несколько, то в ответ запишите результат сравнения через запятую. Например - " + answers[rand_int(2)] + "," + answers[rand_int(2)];
+    let explanation = "Для того, чтобы определить верно ли неравенство, необходимо сначала вычислить результаты обоих частей неравенства, а затем сравнить эти результаты." +
+        " Например, нам дано выражение " + numbers[0][0] + numbers[0][1] + numbers[0][2] + numbers[0][3] + numbers[0][4] + ". Упростим выражение и получим " + 
+        numbers[0][5] + numbers[0][3] + numbers[0][4] + ". " + example + " В ответ запишем - " + output 
+    
+    return new Puzzle {
+        descr: descr,
+        input: input,
+        output: output,
+        wrong_output: wrong_output,
+        explanation: explanation
+    };
+}
+
+function gen_example(numbers: string[][]) -> string {
+    let str = "Упростим остальные неравенства : ";
+    for (let i = 1; i < numbers.length(); i += 1) {
+        if (i == numbers.length() - 1) {
+            str += numbers[i][5] + numbers[i][3] + numbers[i][4] + " соответственно.";
+            break;
+        }
+        str += numbers[i][5] + numbers[i][3] + numbers[i][4] + "; ";
+    }
+    return str;
+}
+
+function gen_wrong(arr: string[]) -> string {
+    let str = "";
+    let wrong = rand_int(arr.length());
+    for (let i = 0; i < arr.length(); i += 1) {
+        let cur = arr[i];
+        if (i == wrong) {
+            if (cur == "верно") {
+                cur = "неверно";
+            } else {
+                cur = "верно";
+            }
+        }
+        if (i == arr.length() - 1 ) {
+            str += cur;
+            break;
+        }
+        str += cur + ",";
+    }
+    return str;
+    
+}
+
+function gen_output(arr: string[]) -> string {
+    let str = "";
+    for (let i = 0; i < arr.length(); i += 1) {
+        if (i == arr.length() - 1 ) {
+            str += arr[i];
+            break;
+        }
+        str += arr[i] + ",";
+    }
+    return str;
+}
+
+function gen_output_arr(arr: string[][]) -> string[] {
+    let out: string[] = [];
+    for (let i = 0; i < arr.length(); i += 1) {
+        let cur = "неверно";
+        if ((arr[i][3] == " > " && float(arr[i][5]) > float(arr[i][4])) || (arr[i][3] == " < " && float(arr[i][5]) < float(arr[i][4]))) {
+            cur = "верно";
+        }
+        out.push(cur);
+    }
+    return out;
+}
+
+function gen_input(arr: string[][]) -> string {
+    let str = "";
+    for (let i = 0; i < arr.length(); i += 1) {
+        str += "[" + arr[i][0] + arr[i][1] + arr[i][2] + arr[i][3] + arr[i][4] + "]";
+    }
+    return str;
+}
+
+function round(p: float, afterDot: int) -> string {
+    let coeff = 1;
+    for (let i = 0; i < afterDot; i += 1) {coeff *= 10}
+
+    p *= float(coeff);
+    let intp = int(p+0.5);
+    let intpp = intp % coeff;
+    if (intpp < 0) {intpp = 0 - intpp}
+    let afterString = string(intpp);
+    for (let i = 0; afterString.length() < afterDot; i += 1) {
+        afterString = "0" + afterString
+    }
+    return string(intp / coeff) + "." + afterString
+}
+
+function gen_numbers(level: int) -> string[][] {
+    let arr: string[][] = [];
+    for (let i = 0; i < level; i += 1) {
+        let cur: string[] = [];
+        let sign = [" + "," - "," * "," / "][rand_int(4)];
+        let first_int = rand_int(level * 2) + 1;
+        let first_float = rand_int(level * 4) + 1;
+        let second_int = rand_int(level * 2) + 1;
+        let second_float = rand_int(level * 4) + 1;
+        let first_string = string(first_int) + "." + string(first_float);
+        let second_string = string(second_int) + "." + string(second_float);
+        let first = float(first_string);
+        let second = float(second_string);
+        let result = 0.0;
+        if (sign == " + ") {
+            result = first + second;
+        } else if (sign == " - ") {
+            result = first - second;
+        } else if (sign == " * ") {
+            result = first * second;
+        } else {
+            result = first / second;
+        }
+        let right_int = int(result);
+        right_int = [right_int + 1, right_int - 1][rand_int(2)];
+        let compare = [" < "," > "][rand_int(2)];
+        cur.push(first_string);
+        cur.push(string(sign));
+        cur.push(second_string);
+        cur.push(string(compare));
+        cur.push(string(right_int));
+        cur.push(round(result, 2));
+        arr.push(cur);
+    }
+    return arr;
+}
+
+function gen_task() -> string {
+    let tasks = ["Надо определить, ","Надо выяснить, "," Надо указать, ","Надо записать, "];
+    return tasks[rand_int(tasks.length())];
+}
+
+function gen_header() -> string {
+    let headers = ["Перед вами ",
+                   "Перед вами записано ",
+                   "В наличии ",
+                   "Имеется ",
+                   "Мы видим ",  
+                   "У нас есть ",
+                   "Дано ",
+                   "Нам дано "
+    ];
+    return headers[rand_int(headers.length())];
+}
