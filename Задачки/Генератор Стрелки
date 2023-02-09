@@ -1,0 +1,135 @@
+struct Puzzle {
+    descr: string,
+    input: Canvas,
+    output: string,
+    wrong_output: string,
+}
+
+function gen_puzzle(level: int) -> Puzzle {
+    let rows = 3;
+    let cols = 3; 
+    if (level > 7) { cols = 4; }
+    if (level > 14) { cols = 5; }
+    let black = rgb(0,0,0);
+    let c = new Canvas{};
+    c.init(400, 300, rgba(rand_int(256), rand_int(256), rand_int(256), 1.0));
+    for (let i = 0; i <= rows ; i += 1) {
+        let cur = 400 / rows * i;
+        c.line(cur,0,cur,300,black,3);
+    }
+    for (let i = 0; i <= cols; i += 1) {
+        let cur = 300 / cols * i;
+        c.line(0,cur,400,cur,black,3);
+    }
+    let row = rand_int(cols);
+    let is_row = rand_bool();
+    if (is_row) { row = rand_int(rows); }
+    let q = random_direction();
+    let ans: int[] = [0,0];
+    let centers = gen_centers(rows, cols);
+    
+    for (let i = 0; i < centers.length(); i += 1) {
+        let direction = random_direction();
+        if (q == direction && is_row) {
+            for (let j = row * cols; j < row * cols + cols; j += 1) {
+                if (j == i) {
+                    ans[1] += 1;
+                }
+            }
+        }
+        if (q == direction && !is_row) {
+            if (i == row || i == (row + cols) || i == (row + cols + cols)) {
+                ans[1] += 1;
+            }
+        }
+        draw_arrows(c, centers[i][0], centers[i][1], direction, black, q, ans);
+    }
+    let header = gen_header();
+    let task = gen_task();
+    let action = gen_action(row, is_row);
+    let descr = header + "в каждой ячейке которой расположена стрелка, указывающая на одно из четырёх направлений: вверх, вниз, влево, вправо. " + task + "сколько стрелок указывают " +
+        q + action;
+    let output = string(ans[0]);
+    if (action != ".") { 
+        output = string(ans[1]);
+    }
+    let wrong_output = [string(int(output) + 1), string(int(output) - 1)][rand_int(2)];
+    if (output == "0") { wrong_output = string(int(output) + 1); }
+    
+    return new Puzzle {
+        descr: descr,
+        input: c,
+        output: output,
+        wrong_output: wrong_output
+    };
+}
+
+function random_direction() -> string { return ["вверх", "вправо", "вниз", "влево"][rand_int(4)] }
+
+function draw_arrows(c: Canvas, x: int, y: int, direction: string, color: Color, q: string, ans: int[]) {
+    if (direction == "вверх") {
+        c.line(x,y - 20,x,y + 20,color,3);
+        c.line(x,y - 20,x - 10,y - 10,color,3);
+        c.line(x,y - 20,x + 10,y - 10,color,3);
+    }
+    if (direction == "вправо") {
+        c.line(x - 20,y,x + 20,y,color,3);
+        c.line(x + 20,y,x + 10,y + 10,color,3);
+        c.line(x + 20,y,x + 10,y - 10,color,3);
+    }
+    if (direction == "вниз") {
+        c.line(x,y + 20,x,y - 20,color,3);
+        c.line(x,y + 20,x - 10,y + 10,color,3);
+        c.line(x,y + 20,x + 10,y + 10,color,3);
+    }
+    if (direction == "влево") {
+        c.line(x + 20,y,x - 20,y,color,3);
+        c.line(x - 20,y,x - 10,y + 10,color,3);
+        c.line(x - 20,y,x - 10,y - 10,color,3);
+    }
+    if (q == direction) {
+        ans[0] += 1;
+    }
+}
+
+function gen_centers(rows: int, cols: int) -> int[][] {
+    let arr: int[][] = [];
+    let x_coef = 400 / rows;
+    let y_coef = 300 / cols;
+    let x = x_coef / 2;
+    let y = y_coef / 2;
+    for (let i = 0; i < rows; i += 1) {
+        for (let j = 0; j < cols; j += 1) {
+            let cur = [x,y];
+            arr.push(cur);
+            y += y_coef;
+        }
+        x += x_coef;
+        y = y_coef / 2;
+    }
+    return arr;
+}
+
+function gen_action(number: int, row: bool) -> string {
+    let col = " строке.";
+    if (row) { col = " столбце."; }
+    let str = " в " + string(number + 1) + col
+    let actions = [".",str,".","."];
+    return actions[rand_int(actions.length())];
+}
+
+function gen_task() -> string {
+    let tasks = ["Определить ", "Необходимо посчитать ", "В ответ записать ", "Напишите "];
+    return tasks[rand_int(tasks.length())];
+}
+
+function gen_header() -> string {
+    let headers = ["Дана таблица, ",
+                   "Представлена таблица, ",
+                   "Вы видите таблицу, ",
+                   "Перед вами таблица, ",
+                   "Нарисована таблица, ",  
+                   "Изображена таблица, "
+    ];
+    return headers[rand_int(headers.length())];
+}
