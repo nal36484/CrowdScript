@@ -1,0 +1,149 @@
+struct Puzzle {
+    descr: string,
+    input: string,
+    output: string,
+    wrong_output: string,
+}
+
+function gen_puzzle(level: int) -> Puzzle {
+    if (level > 20) { level = 20; }
+    
+    let words = [
+        "абрикос ","автосервис ","газета ","галстук ","ель ","датчик ","навигатор ","динамик ","камбала ","озон ","брынза ","лось ","жгут ","завод ","воск ","иск ",
+        "радар ","бисер ","кекс ","желе ","ирис ","замазка ","ночлег ","вязанка ","хурма ","столб ","сарафан ","обруч ","смета ","помпон ","ягода ","грунт ",
+        "бомба ","дудка ","гудок ","дуб ","лён ","драже ","нора ","калитка ","рисунок ","белка ","кастет ","парик ","юрта ","золото ","мыло ","муравей ",
+        "жижа ","стакан ","втулка ","жучка ","радио ","авто ","жираф ","лом ","гель ","ухо ","зуб ","фура ","виза ","очаг ","паровоз ","двор ",
+        "юла ","рубашка ","багет ","рожок ","кошелёк ","знак ","трибуна ","ветка ","палица ","ферзь ","академия ","галерея ","ус ","фабрика ","деревня ","линза ",
+        "икона ","йогурт ","кираса "
+    ];
+    let num = words.length() / 2;
+    let ex1 = words[rand_int(num)];
+    let ex2 = words[rand_int(num) + num];
+    let objects = gen_objects(words, level);
+    let sizes = gen_sizes(objects);
+    let input = gen_input(objects, sizes);
+    let out_obj = objects;
+    let out_sizes = sizes;
+    sort(out_obj, out_sizes);
+    let header = gen_header();
+    let task = gen_task();
+    let descr = header + "некоторое количество объектов, каждый объект имеет свой размер. " + task + "данные объекты от меньшего к большему размеру. Ответ запишите через пробел. " +
+        "Пример ответа: " + ex1 + ex2;
+    let output = gen_output(out_obj);
+    let wrong_obj = out_obj;
+    gen_wrong(wrong_obj);
+    let wrong_output = gen_output(wrong_obj);
+    
+    return new Puzzle {
+        descr: descr,
+        input: input,
+        output: output,
+        wrong_output: wrong_output
+        
+    };
+}
+
+function gen_wrong(arr: string[]) {
+    let wrong = rand_int(arr.length());
+    if (wrong == arr.length() - 1) {
+        swap(arr, wrong, wrong - 1);
+    } else if (wrong == 0) {
+        swap(arr, wrong, wrong + 1);
+    } else {
+        let next = [wrong + 1, wrong - 1][rand_int(2)];
+        swap(arr, wrong, next);
+    }
+}
+
+function swap(arr: string[], i: int, j: int) {
+    let temp = arr[i];
+    arr[i] = arr[j];
+    arr[j] = temp;
+}
+
+function gen_output(arr: string[]) -> string {
+    let str = "";
+    for (let i = 0; i < arr.length(); i += 1) {
+        str += arr[i];
+    }
+    return str;
+}
+
+function sort(obj: string[], sizes: int[]) {
+    let inn = 1;
+    for (let out = 1; out < obj.length(); out += 1) {
+        let temp = sizes[out];
+        let temp_obj = obj[out];
+        inn = out;
+        while (inn > 0 && sizes[inn - 1] >= temp) {
+            sizes[inn] = sizes[inn - 1];
+            obj[inn] = obj[inn - 1];
+            inn -= 1;
+        }
+        obj[inn] = temp_obj;
+        sizes[inn] = temp;
+    }
+}
+
+function gen_input(obj: string[], sizes: int[]) -> string {
+    let str = "";
+    for (let i = 0; i < obj.length(); i += 1) {
+        if (i == obj.length() - 1) {
+            str += obj[i] + "= " + string(sizes[i]);
+            break;
+        }
+        str += obj[i] + "= " + string(sizes[i]) + ", ";
+    }
+    return str;
+}
+
+function gen_sizes(arr: string[]) -> int[] {
+    let sizes: int[] = [];
+    let map: {int: int} = {};
+    for (let i = 0; i < arr.length(); i += 1) {
+        let cur = rand_int(1000);
+        while (map.contains(cur) && cur < 999) {
+            cur += 1;
+        }
+        while (map.contains(cur) && cur > 0) {
+            cur -= 1;
+        }
+        sizes.push(cur);
+        map[cur] = cur;
+    }
+    return sizes;
+}
+
+function gen_objects(words: string[], level: int) -> string[] {
+    let arr: string[] = [];
+    let map: {int: int} = {};
+    for (let i = 0; i < level + 3; i += 1) {
+        let cur = rand_int(words.length());
+        while (map.contains(cur) && cur < words.length() - 1) {
+            cur += 1;
+        }
+        while (map.contains(cur) && cur > 0) {
+            cur -= 1;
+        }
+        arr.push(words[cur]);
+        map[cur] = cur;
+    }
+    return arr;
+}
+
+function gen_task() -> string {
+    let tasks = ["Расположите ","Вам необходимо расположить ","Разместите ","Вам необходимо разместить ","Запишите ","Вам необходимо записать "];
+    return tasks[rand_int(tasks.length())];
+}
+
+function gen_header() -> string {
+    let headers = ["Дано  ",
+                   "Представлено ",
+                   "Вы видите ",
+                   "Перед вами ",
+                   "Записано ",  
+                   "Перечислено ",
+                   "Представьте, что перед вами "
+    ];
+    return headers[rand_int(headers.length())];
+}
