@@ -6,16 +6,13 @@ struct Puzzle {
 }
 
 function gen_puzzle(level: int) -> Puzzle {
-    let rows = 3 + level / 4;
-    let cols = 3 + level / 4; 
+    let rows = 3 + (level - 1) / 2;
+    let cols = 3 + (level - 1) / 2; 
     if (level > 1) {
         if (level % 2 == 0) {
             cols += 1;
-        } else {
-            rows += 1;
         }
     }
-    let total = rand_int(level);
     let black = rgb(0,0,0);
     let c = new Canvas{};
     c.init(800, 600, rgba(rand_int(256), rand_int(256), rand_int(256), 1.0));
