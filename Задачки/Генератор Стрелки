@@ -6,20 +6,26 @@ struct Puzzle {
 }
 
 function gen_puzzle(level: int) -> Puzzle {
-    let rows = 3;
-    let cols = 3; 
-    if (level > 7) { cols = 4; }
-    if (level > 14) { cols = 5; }
+    let rows = 3 + level / 4;
+    let cols = 3 + level / 4; 
+    if (level > 1) {
+        if (level % 2 == 0) {
+            cols += 1;
+        } else {
+            rows += 1;
+        }
+    }
+    let total = rand_int(level);
     let black = rgb(0,0,0);
     let c = new Canvas{};
-    c.init(400, 300, rgba(rand_int(256), rand_int(256), rand_int(256), 1.0));
+    c.init(800, 600, rgba(rand_int(256), rand_int(256), rand_int(256), 1.0));
     for (let i = 0; i <= rows ; i += 1) {
-        let cur = 400 / rows * i;
-        c.line(cur,0,cur,300,black,3);
+        let cur = 800 / rows * i;
+        c.line(cur,0,cur,600,black,3);
     }
     for (let i = 0; i <= cols; i += 1) {
-        let cur = 300 / cols * i;
-        c.line(0,cur,400,cur,black,3);
+        let cur = 600 / cols * i;
+        c.line(0,cur,800,cur,black,3);
     }
     let row = rand_int(cols);
     let is_row = rand_bool();
@@ -38,8 +44,10 @@ function gen_puzzle(level: int) -> Puzzle {
             }
         }
         if (q == direction && !is_row) {
-            if (i == row || i == (row + cols) || i == (row + cols + cols)) {
-                ans[1] += 1;
+            for (let j = row; j < centers.length(); j += cols) {
+                if (j == i) {
+                    ans[1] += 1;
+                }
             }
         }
         draw_arrows(c, centers[i][0], centers[i][1], direction, black, q, ans);
@@ -94,8 +102,8 @@ function draw_arrows(c: Canvas, x: int, y: int, direction: string, color: Color,
 
 function gen_centers(rows: int, cols: int) -> int[][] {
     let arr: int[][] = [];
-    let x_coef = 400 / rows;
-    let y_coef = 300 / cols;
+    let x_coef = 800 / rows;
+    let y_coef = 600 / cols;
     let x = x_coef / 2;
     let y = y_coef / 2;
     for (let i = 0; i < rows; i += 1) {
