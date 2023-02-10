@@ -1,0 +1,141 @@
+struct Puzzle {
+    descr: string,
+    input: Canvas,
+    output: string,
+    wrong_output: string,
+    explanation: string
+}
+
+function gen_puzzle(level: int) -> Puzzle { 
+    let rows = 3 + (level - 1) / 2;
+    let cols = 3 + (level - 1) / 2;
+    if (level > 1) {
+        if (level % 2 == 0) {
+            cols += 1;
+        }
+    }
+    let total = rand_int(level);
+    let black = rgb(0,0,0);
+    let c = new Canvas{};
+    c.init(800, 600, rgba(rand_int(200) + 56, rand_int(200) + 56, rand_int(256), 1.0));
+    for (let i = 0; i <= rows ; i += 1) {
+        let cur = 800 / rows * i;
+        if (i == rows) {
+            c.line(800,0,800,600,black,3)
+            break;
+        }
+        c.line(cur,0,cur,600,black,3);
+    }
+    for (let i = 0; i <= cols; i += 1) {
+        let cur = 600 / cols * i;
+        if (i == cols) {
+            c.line(0,600,800,600,black,3)
+            break;
+        }
+        c.line(0,cur,800,cur,black,3);
+    }
+    let centers = gen_centers(rows, cols);
+    let font = 200 / rows;
+    let numbers: int[] = [];
+    let even: int[] = [];
+    let odd: int[] = [];
+    let size = rows * cols;
+    gen_numbers(numbers, even, odd, size);
+    for (let i = 0; i < centers.length(); i += 1) {
+        draw_numbers(c, centers[i][0], centers[i][1], black, string(numbers[i]), font);
+    }
+    let evens= gen_output(even);
+    let odds = gen_output(odd);
+    let is_even = ["чётные","нечётные"][rand_int(2)];
+    let output = odds;
+    let wrong_output = evens;
+    if (is_even == "чётные") {
+        output = evens;
+        wrong_output = odds;
+    }
+    let example1 = rand_int(100) + 51;
+    if (is_even == "чётные" && example1 % 2 != 0) {
+        example1 += 1;
+    } else if (is_even == "нечётные" && example1 % 2 == 0) {
+        example1 += 1;
+    }
+    let header = gen_header();
+    let task = gen_task();
+    let descr = header + "с целыми числами. " + task + "все "+ is_even + " числа. Считывание таблицы происходит слева направо, сверху вниз. " +
+        "В ответе запишите все " + is_even + " числа через пробел. Формат ответа: " + string(example1 - 20) + " " + string(example1 + 28);
+    
+    return new Puzzle {
+        descr: descr,
+        input: c,
+        output: output,
+        wrong_output: wrong_output,
+        explanation: "Целое число называется чётным, если оно делится на 2 без остатка, и нечётным в противном случае. Например 7 / 2 = 3, остаток = 1, число 7 нечётное."
+    };
+}
+
+function gen_output(arr: int[]) -> string {
+    let str = "";
+    for (let i = 0; i < arr.length(); i += 1) {
+        str += string(arr[i]) + " ";
+    }
+    return str;
+}
+
+function draw_numbers(c: Canvas, x: int, y: int, color: Color, number: string, font: int) {
+    c.text(x, y, number, font, color, "center");
+}
+
+function gen_numbers(numbers: int[], even: int[], odd: int[], size: int) {
+    let map: {int: int} = {};
+    for (let i = 0; i < size; i += 1) {
+        let cur = rand_int(299) + 1;
+        while (map.contains(cur) && cur < 299) {
+            cur += 1;
+        }
+        while (map.contains(cur) && cur > 1) {
+            cur -= 1;
+        }
+        numbers.push(cur);
+        map[cur] = cur;
+        if (cur % 2 == 0) {
+            even.push(cur);
+        } else {
+            odd.push(cur);
+        }
+    }
+}
+
+function gen_centers(rows: int, cols: int) -> int[][] {
+    let arr: int[][] = [];
+    let x_coef = 800 / rows;
+    let y_coef = 600 / cols;
+    let x = x_coef / 2;
+    let y = y_coef / 2;
+    for (let i = 0; i < cols; i += 1) {
+        for (let j = 0; j < rows; j += 1) {
+            let cur = [x,y];
+            arr.push(cur);
+            x += x_coef;
+            
+        }
+        y += y_coef; 
+        x = x_coef / 2;
+    }
+    return arr;
+}
+
+function gen_task() -> string {
+    let tasks = ["Необходимо определить ", "Необходимо указать ", "Определите ", "Укажите ", "Найдите ", "Установите "];
+    return tasks[rand_int(tasks.length())];
+}
+
+function gen_header() -> string {
+    let headers = ["Дана таблица, ",
+                   "Представлена таблица, ",
+                   "Вы видите таблицу, ",
+                   "Перед вами таблица, ",
+                   "Нарисована таблица, ",  
+                   "Изображена таблица, "
+    ];
+    return headers[rand_int(headers.length())];
+}
