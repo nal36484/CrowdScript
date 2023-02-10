@@ -1,0 +1,154 @@
+struct Puzzle {
+    descr: string,
+    input: Canvas,
+    output: string,
+    wrong_output: string,
+    explanation: string
+}
+
+function gen_puzzle(level: int) -> Puzzle {
+    
+    let c = new Canvas{};
+    c.init(400, 300, rgba(rand_int(256), rand_int(256), rand_int(256), 1.0));
+    draw_circles(c,200,150);
+    let pi = 3.1415;
+    let area_rad = gen_area(level);
+    let data = gen_data(area_rad);
+    let areas: float [][] = [];
+    let answers = gen_big_area(area_rad, pi, areas);
+    let ending = data + ". Площадь дороги округлите до целого числа.";
+    if (level > 1) {
+        ending = "На входе дано некоторое количество площадей и радиусов. " + data + ". Площадь дороги округлите до целого числа, ответ запишите через пробел. Формат ответа: " +
+            string(rand_int(2000) + 100) + " " + string(rand_int(2000) + 100);
+    }
+    let header = gen_header();
+    let task = gen_task();
+    let descr =  header + "большой круг, в середине которого круг поменьше (клумба). " + task + "площадь дороги. Если дорога это участок большого " +
+        "круга без клумбы (на рисунке дорога коричневого цвета). Нам известны радиус (R) меньшего круга и площадь (S) большого круга. " +
+        ending;
+    let output = gen_output(answers);
+    let wrong_output = gen_wrong(answers);
+    let explanation = "Чтобы найти площадь дороги, нужно из площади большого круга вычесть площадь маленького круга. Площадь большого круга нам известна. " +
+        "Найдём площадь маленького круга по формуле площади круга, S = pi * R^2, где pi - это константа равная примерно 3.1415, а R это радиус круга. " +
+        "Так как R нам известно, то получим следующее выражение Sмал = 3.1415 * " + string(area_rad[0][1]) + "^2, Sмал = " + string(areas[0][0]) +
+        ". Площадь дороги равна " + string(area_rad[0][0]) + " - " + string(areas[0][0]) + " = " + string(areas[0][1]) + ". Округлим до целого числа и получим " +
+        string(answers[0]);
+    
+    return new Puzzle {
+        descr: descr,
+        input: c,
+        output: output,
+        wrong_output: wrong_output,
+        explanation: explanation
+    };
+}
+
+function gen_wrong(arr: int[]) -> string {
+    let str = "";
+    let wrong = rand_int(arr.length());
+    for (let i = 0; i < arr.length(); i += 1) {
+        if (i == wrong) {
+            let wr = [string(arr[i] - 1), string(arr[i] + 1)][rand_int(2)];
+            str += wr + " ";
+            continue;
+        }
+        str += string(arr[i]) + " ";
+    }
+    return str;
+}
+
+function gen_output(arr: int[]) -> string {
+    let str = "";
+    for (let i = 0; i < arr.length(); i += 1) {
+        str += string(arr[i]) + " ";
+    }
+    return str;
+}
+
+function gen_big_area(arr: int[][], pi: float, areas: float[][]) -> int[] {
+    let ans: int[] = [];
+    for (let i = 0; i < arr.length(); i += 1) {
+        let cur = float(arr[i][1]);
+        let s_small = pi * cur * cur;
+        let s_mid = float(arr[i][0]) - s_small;
+        let cur_ans = int(s_mid);
+        if (is_bigger(s_mid)) {
+            cur_ans += 1;
+        }
+        areas.push([s_small, s_mid]);
+        ans.push(cur_ans);
+    }
+    return ans;
+}
+
+function gen_data(arr: int[][]) -> string {
+    let str = "";
+    for (let i = 0; i < arr.length(); i += 1) {
+        str += "[R = " + string(arr[i][1]) + ", S = " + string(arr[i][0]) + "]";
+    }
+    return str;
+}
+
+function is_bigger(value: float) -> bool{
+    let is_big = false;
+    let str = string(value);
+    let number = "";
+    for (let i = 0; i < str.length(); i += 1) {
+        let ch = str[i];
+        if (ch == ".") {
+            if (i + 1 < str.length()) {
+                number = str[i + 1];
+                if (int(number) >= 5) {
+                    is_big = true;
+                }
+            }
+            break;
+        }
+    }
+    return is_big;
+}
+
+function gen_area(level: int) -> int[][] {
+    let area: int[][] = [];
+    let map: {int: int} = {};
+    for (let i = 0; i < level; i += 1) {
+        let cur = rand_int(2000) + 100;
+        let radius = rand_int(5) + 1;
+        while (map.contains(cur) && cur < 2000) {
+            cur += 1;
+        }
+        area.push([cur,radius]);
+        map[cur] = cur;
+    }
+    return area;
+}
+
+function random_color() -> Color { return rgb(rand_int(256), rand_int(256), rand_int(256)); }
+
+function draw_circles(c: Canvas, x: int, y: int) {
+    let size = rand_int(10) + 100;
+    let bg = random_color();
+    let fg = random_color();
+    let size2 = size - 40;
+    let brown = rgb(150,75,0)
+        
+    c.fill_ellipse(x - size, y - size, size * 2, size * 2, fg, brown, 3);
+    c.fill_ellipse(x - size2, y - size2, size2 * 2, size2 * 2, fg, bg, 3);
+}
+
+function gen_task() -> string {
+    let tasks = ["Определите ", "Найдите ", "Установите ", "Выясните ", "Посчитайте ", "Сосчитайте "];
+    return tasks[rand_int(tasks.length())];
+}
+
+function gen_header() -> string {
+    let headers = ["Перед вами ",
+                   "Нарисован ",
+                   "Вы видите ",
+                   "Имеется ",
+                   "Мы видим ",  
+                   "У нас есть ",
+                   "На рисунке изображён "
+    ];
+    return headers[rand_int(headers.length())];
+}
